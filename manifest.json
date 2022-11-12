@@ -1,0 +1,22 @@
+{
+    "manifest_version": 3,
+    "name": "Wordbook",
+    "version": "0.1",
+    "description": "Learn with youtube.",
+    "host_permissions": ["https://*.youtube.com/*"],
+    "background": {
+        "service_worker": "./background.js"
+    },
+    "permissions": ["storage" , "scripting", "tabs", "tabGroups"],
+    "action": {
+        "default_popup": "index.html",
+        "default_title": "Wordbook",
+        "default_icon": {
+          "192": "./assets/icons/wordbook-logo.png"
+        }
+      },
+    "icons": {
+      "16": "./assets/icons/wordbook-logo.png",
+      "192": "./assets/icons/wordbook-logo.png"
+    } 
+  }
