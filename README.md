@@ -1,1 +1,1 @@
-# wordbook-extension
+# wordbook-extension for Chrome
