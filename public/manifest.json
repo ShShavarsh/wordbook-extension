@@ -14,7 +14,13 @@
         "default_icon": {
           "192": "./assets/icons/wordbook-logo.png"
         }
-      },
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://*.youtube.com/*"],
+            "js": ["content-script.js"]
+        }
+    ],
     "icons": {
       "16": "./assets/icons/wordbook-logo.png",
       "192": "./assets/icons/wordbook-logo.png"
