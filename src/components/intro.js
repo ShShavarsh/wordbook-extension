@@ -5,22 +5,31 @@ import LogInSvg from '../assets/log-in.svg'
 
 const Intro = () => {
   return (
-    <Container>
+    <Container
+    sx={{
+      padding: '5px',
+      border: '3px',
+      borderRadius: '5px',
+      borderColor: '#F5EDFF',
+      borderStyle: 'solid'
+    }}>
       <Box
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
-        width: 'inherit'
+        width: 'inherit',
+        marginLeft: '20px'
       }}>
           <Link
           target='_blank'
           href='https://wordbook.pro'
           sx={{
-            display: 'contents'
+            display: 'contents',
+            width: '252px'
           }}>
             <Icon
               sx={{
-                width: '51px',
+                width: '40px',
                 height: '32px'
               }}>
                 <img src={WordbookLogo}/>
@@ -28,7 +37,6 @@ const Intro = () => {
             <Typography
             sx={{
               fontFamily: 'Poppins',
-              marginLeft: '10px',
               fontSize: '22px',
               textDecoration: 'none',
               boxShadow: 'none',
@@ -41,17 +49,23 @@ const Intro = () => {
           </Link>
           <Button
             variant="contained"
+            target='_blank'
+            href='https://wordbook.pro/signIn'
+            component={Link}
             sx={{
               backgroundColor: '#7000FF',
               borderRadius: '8px',
+              width: '120px',
+              height: '38px',
               marginLeft: '130px',
+              alignItems: 'center',
               ':hover': {
                 backgroundColor: '#7000FF'
               }
             }}>
           <Icon
               sx={{
-                width: '51px',
+                marginRight: '10px',
                 height: '32px'
               }}>
                 <img src={LogInSvg}/>
