@@ -11,13 +11,13 @@
       ReInitializeWordbook()
     }
 
-    // const wordbookButton = document.getElementById('wordbook-button')
-    // wordbookButton.addEventListener('click')
+    if (document.getElementById('caption-window-wordbook') === null) {
+      CreateCaptionText()
+    }
 
     const transcript = await GetTranscript(videoId)
 
     if (transcript !== null) {
-      CreateCaptionText()
       SetSubtitle(transcript)
     }
 
@@ -66,6 +66,15 @@
     const logo = 'data:image/svg+xml;base64,' + window.btoa(svg)
     wordbookButton.setAttribute('style', 'background-color: white;-webkit-mask-image: url(' + logo + ');-webkit-mask-repeat: no-repeat;-webkit-box-align: center;vertical-align: middle;margin-right: -13px;margin-left: 9px; margin-bottom: 12px;')
 
+    wordbookButton.addEventListener('click', function () {
+      const captionWindow = document.getElementById('caption-window-wordbook')
+      if (captionWindow && captionWindow.style.visibility === 'hidden') {
+        captionWindow.style.visibility = 'unset'
+      } else if (captionWindow && captionWindow.style.visibility === 'unset') {
+        captionWindow.style.visibility = 'hidden'
+      }
+    })
+
     return wordbookButton
   }
 
@@ -91,7 +100,7 @@
 
     const captionWindow = document.createElement('div')
     captionWindow.className = 'caption-window ytp-caption-window-bottom ytp-caption-window-rollup'
-    captionWindow.id = 'caption-window-1'
+    captionWindow.id = 'caption-window-wordbook'
     captionWindow.dir = 'ltr'
     captionWindow.tabIndex = '0'
     captionWindow.lang = 'en'
@@ -101,7 +110,7 @@
     const width = videoWindow.clientWidth * 0.65
     const height = videoWindow.clientHeight * 0.15
 
-    captionWindow.setAttribute('style', 'touch-action: none; text-align: left; overflow: hidden; left: 12%; bottom: 1%; width: ' + width + 'px; height: ' + height + 'px;')
+    captionWindow.setAttribute('style', 'touch-action: none; text-align: left; overflow: hidden; left: 12%; bottom: 1%; width: ' + width + 'px; height: ' + height + 'px; visibility: hidden;')
     captionWindowContainer.appendChild(captionWindow)
 
     const captionText = document.createElement('span')
@@ -140,10 +149,10 @@
     wordButton.style = 'cursor: pointer; display: inline-block; white-space: pre-wrap; border: none; background: rgba(8,8,8, 0.75); font-size: ' + fontSize + 'px; color: rgb(255,255,255); fill: rgb(255,255,255); font-family: "Youtube Noto", Roboto, "Arial Unicode Ms", Arial, Helvetica, Verdana, "PT Sans Caption",sans-serif'
     wordButton.innerText = word
     wordButton.addEventListener('mouseover', function () {
-      wordButton.style.color = '#7000FF'
+      wordButton.style.fontWeight = 'bold'
     })
     wordButton.addEventListener('mouseout', function () {
-      wordButton.style.color = 'rgb(255,255,255)'
+      wordButton.style.fontWeight = 'normal'
     })
     return wordButton
   }
