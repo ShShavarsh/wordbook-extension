@@ -64,14 +64,39 @@
     wordbookButton.className = 'ytp-button wordbook'
     const svg = '<svg width="30" height="19" viewBox="0 0 30 19" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.3726 8.87999L12.5983 0.105647C12.5307 0.038033 12.4386 0 12.3428 0H0.361991C0.0403543 0 -0.121168 0.389251 0.10656 0.61651L8.11461 8.62456C8.53767 9.04762 8.53767 9.73362 8.11461 10.1571L0.10656 18.1652C-0.121168 18.3929 0.0403543 18.7817 0.361991 18.7817H12.3433C12.4391 18.7817 12.5311 18.7437 12.5987 18.6761L21.3731 9.90172C21.6548 9.61952 21.6548 9.16219 21.3726 8.87999Z" fill="#7000FF"/><path d="M29.0637 8.62456L20.5448 0.105647C20.4772 0.038033 20.3852 0 20.2894 0H16.9767C16.6551 0 16.4936 0.389251 16.7213 0.61651L24.9848 8.87999C25.267 9.16219 25.267 9.61952 24.9848 9.90172L16.7213 18.1652C16.4936 18.3929 16.6551 18.7817 16.9767 18.7817H20.2894C20.3852 18.7817 20.4772 18.7437 20.5448 18.6761L29.0637 10.1571C29.4868 9.73409 29.4868 9.04762 29.0637 8.62456Z" fill="#7000FF"/></svg>'
     const logo = 'data:image/svg+xml;base64,' + window.btoa(svg)
-    wordbookButton.setAttribute('style', 'background-color: white;-webkit-mask-image: url(' + logo + ');-webkit-mask-repeat: no-repeat;-webkit-box-align: center;vertical-align: middle;margin-right: -13px;margin-left: 9px; margin-bottom: 12px;')
+    wordbookButton.setAttribute('style', 'background-color: white; opacity: 0.5;-webkit-mask-image: url(' + logo + ');-webkit-mask-repeat: no-repeat;-webkit-box-align: center;vertical-align: middle;margin-right: -13px;margin-left: 9px; margin-bottom: 12px;')
+    wordbookButton.ariaPressed = false
+
+    const subtitleButton = document.getElementsByClassName('ytp-right-controls')[0].children[1]
 
     wordbookButton.addEventListener('click', function () {
+      const subtitleButton = document.getElementsByClassName('ytp-right-controls')[0].children[1]
       const captionWindow = document.getElementById('caption-window-wordbook')
-      if (captionWindow && captionWindow.style.visibility === 'hidden') {
+
+      if (wordbookButton.ariaPressed === 'false') {
+        if (subtitleButton.ariaPressed === 'true') {
+          subtitleButton.click()
+          subtitleButton.ariaPressed = false
+        }
+        wordbookButton.ariaPressed = true
+        wordbookButton.style.opacity = 1
         captionWindow.style.visibility = 'unset'
-      } else if (captionWindow && captionWindow.style.visibility === 'unset') {
+      } else if (wordbookButton.ariaPressed === 'true') {
         captionWindow.style.visibility = 'hidden'
+
+        wordbookButton.style.opacity = 0.5
+        wordbookButton.ariaPressed = false
+      }
+    })
+
+    subtitleButton.addEventListener('click', function () {
+      const captionWindow = document.getElementById('caption-window-wordbook')
+
+      if (wordbookButton.ariaPressed === 'true') {
+        wordbookButton.click()
+        wordbookButton.ariaPressed = false
+        captionWindow.style.visibility = 'hidden'
+        wordbookButton.style.opacity = 0.5
       }
     })
 
@@ -174,6 +199,7 @@
 
       if (data) {
         data.transcript.forEach(element => {
+          element.text = element.text.replace('\n', ' ')
           const index = Math.floor(element.start / 5)
 
           if (index === 0) {
