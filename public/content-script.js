@@ -86,6 +86,11 @@
 
         wordbookButton.style.opacity = 0.5
         wordbookButton.ariaPressed = false
+
+        const popupWindow = document.getElementById('wordbook-definition-popup')
+        if (popupWindow) {
+          popupWindow.remove()
+        }
       }
     })
 
@@ -171,7 +176,7 @@
     const size = Math.sqrt((videoWindow.clientHeight * videoWindow.clientHeight) + (videoWindow.clientWidth * videoWindow.clientWidth))
     const fontSize = size * 0.02
 
-    wordButton.style = 'cursor: pointer; display: inline-block; white-space: pre-wrap; border: none; background: rgba(8,8,8, 0.75); font-size: ' + fontSize + 'px; color: rgb(255,255,255); fill: rgb(255,255,255); font-family: "Youtube Noto", Roboto, "Arial Unicode Ms", Arial, Helvetica, Verdana, "PT Sans Caption",sans-serif'
+    wordButton.style = 'cursor: pointer; display: inline-block; white-space: pre-wrap; border: none; padding: 5px 5px; background: rgba(8,8,8, 0.75); font-size: ' + fontSize + 'px; color: rgb(255,255,255); fill: rgb(255,255,255); font-family: "Youtube Noto", Roboto, "Arial Unicode Ms", Arial, Helvetica, Verdana, "PT Sans Caption",sans-serif'
     wordButton.innerText = word
     wordButton.addEventListener('mouseover', function () {
       wordButton.style.fontWeight = 'bold'
@@ -179,8 +184,179 @@
     wordButton.addEventListener('mouseout', function () {
       wordButton.style.fontWeight = 'normal'
     })
+
+    wordButton.addEventListener('click', function () {
+      const playButton = document.getElementsByClassName('ytp-play-button')[0]
+      if (playButton.dataset.titleNoTooltip === 'Pause') {
+        playButton.click()
+      }
+
+      const popupWindow = document.getElementById('wordbook-definition-popup')
+      if (popupWindow) {
+        popupWindow.remove()
+        CreateDefinitionPopup()
+      } else {
+        CreateDefinitionPopup()
+      }
+    })
     return wordButton
   }
+
+  const CreateDefinitionPopup = () => {
+    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
+
+    const popupWindow = document.createElement('div')
+    const captionWindowHeight = Math.round(document.getElementsByClassName('caption-window')[0].clientHeight)
+
+    popupWindow.id = 'wordbook-definition-popup'
+    popupWindow.style = `position: absolute; background: #FFFFFF; border-radius: 8px; box-sizing: border-box; padding: 16px 20px; z-index: 999; left: 25%; top: ${videoWindow.clientHeight - captionWindowHeight - popupWindow.clientHeight - 15}px`
+    videoWindow.appendChild(popupWindow)
+
+    const playButton = document.getElementsByClassName('ytp-play-button')[0]
+    playButton.addEventListener('click', function () {
+      if (playButton.dataset.titleNoTooltip === 'Play') {
+        popupWindow.remove()
+      }
+    })
+
+    UpdatePopupSize()
+  }
+
+  // const GetDefinition = async (word) => {
+  //   const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
+
+  //   const response = await fetch(url, {
+  //     method: 'GET',
+  //     headers: {
+  //       'Content-Type': 'application/json'
+  //     }
+  //   })
+
+  //   if (response.status >= 200 && response.status < 210) {
+  //     const data = await response.json()
+
+  //     if (data) {
+  //       const allMeanings = []
+
+  //       data.forEach(sector => {
+  //         if (sector.meanings) {
+  //           sector.meanings.forEach(wordType => {
+  //             const meaning = {
+  //               partOfSpeech: '',
+  //               definitions: [{}]
+  //             }
+
+  //             const foundedMeaning = allMeanings.find((meaning) => meaning.partOfSpeech === wordType.partOfSpeech)
+
+  //             if (foundedMeaning) {
+  //               const indexToChange = allMeanings.indexOf(foundedMeaning)
+
+  //               if (wordType.definitions) {
+  //                 wordType.definitions.forEach(def => {
+  //                   foundedMeaning.definitions.push({ definition: def.definition })
+  //                 })
+
+  //                 allMeanings[indexToChange] = foundedMeaning
+  //               }
+  //             } else {
+  //               meaning.partOfSpeech = wordType.partOfSpeech
+
+  //               if (wordType.definitions) {
+  //                 wordType.definitions.forEach(def => {
+  //                   meaning.definitions.push({ definition: def.definition })
+  //                 })
+  //               }
+
+  //               allMeanings.push(meaning)
+  //             }
+  //           })
+  //         }
+  //       })
+
+  //       const definition = {
+  //         status: 'success',
+  //         word: data[0].word,
+  //         meanings: allMeanings
+  //       }
+
+  //       return {
+  //         status: 'success',
+  //         definition
+  //       }
+  //     }
+  //   } else {
+  //     return {
+  //       status: 'failure',
+  //       definition: ''
+  //     }
+  //   }
+  // }
+
+  // const GetOxfordDefinition = async (word) => {
+  //   const url = `${WORDBOOK_API_URL}/api/v1/oxford/definition?word=${word}&language=en`
+
+  //   const response = await fetch(url, {
+  //     method: 'GET',
+  //     headers: {
+  //       'Content-Type': 'application/json'
+  //     }
+  //   })
+
+  //   if (response.status >= 200 && response.status < 210) {
+  //     const data = await response.json()
+
+  //     if (data) {
+  //       let allMeanings = []
+
+  //       data.results[0].lexicalEntries.forEach(def => {
+  //         const meaning = {
+  //           partOfSpeech: '',
+  //           definitions: [{}]
+  //         }
+
+  //         meaning.partOfSpeech = def.lexicalCategory.text
+
+  //         if (def.entries) {
+  //           def.entries.forEach(entry => {
+  //             if (entry.senses) {
+  //               entry.senses.forEach(sense => {
+  //                 if (sense.definitions) {
+  //                   meaning.definitions.push({ definition: sense.definitions[0] })
+  //                 }
+
+  //                 if (sense.subsenses) {
+  //                   sense.subsenses.forEach(subsense => {
+  //                     if (subsense && subsense.definitions) {
+  //                       meaning.definitions.push({ definition: subsense.definitions[0] })
+  //                     }
+  //                   })
+  //                 }
+  //               })
+  //             }
+  //           })
+  //         }
+
+  //         allMeanings = allMeanings.concat(meaning)
+  //       })
+
+  //       const definition = {
+  //         status: 'success',
+  //         word: data.word,
+  //         meanings: allMeanings
+  //       }
+
+  //       return {
+  //         status: 'success',
+  //         definition
+  //       }
+  //     }
+  //   } else {
+  //     return {
+  //       status: 'failure',
+  //       definition: ''
+  //     }
+  //   }
+  // }
 
   const GetTranscript = async (videoId) => {
     const url = `${WORDBOOK_API_URL}/api/v1/transcript/${videoId}`
@@ -250,6 +426,25 @@
     const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
     new ResizeObserver(CalculateNewCaptionFontSize).observe(videoWindow)
     new ResizeObserver(CalculateNewCaptionSize).observe(videoWindow)
+  }
+
+  const UpdatePopupSize = () => {
+    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
+    new ResizeObserver(CalculatePopupSize).observe(videoWindow)
+  }
+
+  const CalculatePopupSize = () => {
+    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
+    const width = videoWindow.clientWidth * 0.35
+    const height = videoWindow.clientHeight * 0.4
+
+    const popupWindow = document.getElementById('wordbook-definition-popup')
+    popupWindow.style.width = width + 'px'
+    popupWindow.style.height = height + 'px'
+
+    const captionWindowHeight = Math.round(document.getElementsByClassName('caption-window')[0].clientHeight)
+
+    popupWindow.style.top = `${videoWindow.clientHeight - captionWindowHeight - popupWindow.clientHeight - 85}px`
   }
 
   const CalculateNewCaptionFontSize = () => {
