@@ -1,15 +1,13 @@
 /* eslint-disable no-undef */
-(() => {
+(async () => {
   const WORDBOOK_API_URL = 'https://wordbook.pro'
 
   chrome.runtime.onMessage.addListener(async (obj, sender, response) => {
     const { type, videoId } = obj
 
-    if (document.getElementById('wordbook-button') === null) {
-      InitializeWordbook()
-    } else {
-      ReInitializeWordbook()
-    }
+    InitializeWordbook()
+
+    SetScrollbarCss()
 
     if (document.getElementById('caption-window-wordbook') === null) {
       CreateCaptionText()
@@ -26,17 +24,29 @@
     }
   })
 
-  const InitializeWordbook = () => {
-    const elementPanel = document.getElementsByClassName('ytp-right-controls')[0]
-    const wordbookButton = CreateWordbookButton()
-    elementPanel.insertBefore(wordbookButton, elementPanel.children[2])
+  const SetScrollbarCss = () => {
+    const customStyle = document.createElement('style')
+    const css = '::-webkit-scrollbar {width: 5.5px!important; border-radius: 10px!important; height: 5px;} ::-webkit-scrollbar-thumb { background-color: rgba(112,0,255,.3);cursor: pointer;}'
+    if (customStyle.styleSheet) {
+      customStyle.styleSheet.cssText = css
+    } else {
+      customStyle.appendChild(document.createTextNode(css))
+    }
+    const headElement = document.head
+    headElement.appendChild(customStyle)
   }
 
-  const ReInitializeWordbook = () => {
-    const elementPanel = document.getElementsByClassName('ytp-right-controls')[0]
-    elementPanel.removeChild(elementPanel.children[2])
-    const wordbookButton = CreateWordbookButton()
-    elementPanel.insertBefore(wordbookButton, elementPanel.children[2])
+  const InitializeWordbook = () => {
+    if (document.getElementById('wordbook-button') === null) {
+      const elementPanel = document.getElementsByClassName('ytp-right-controls')[0]
+      const wordbookButton = CreateWordbookButton()
+      elementPanel.insertBefore(wordbookButton, elementPanel.children[2])
+    } else {
+      const elementPanel = document.getElementsByClassName('ytp-right-controls')[0]
+      elementPanel.removeChild(elementPanel.children[2])
+      const wordbookButton = CreateWordbookButton()
+      elementPanel.insertBefore(wordbookButton, elementPanel.children[2])
+    }
   }
 
   const SetSubtitle = (transcript) => {
@@ -185,32 +195,97 @@
       wordButton.style.fontWeight = 'normal'
     })
 
-    wordButton.addEventListener('click', function () {
+    wordButton.addEventListener('click', async function () {
       const playButton = document.getElementsByClassName('ytp-play-button')[0]
       if (playButton.dataset.titleNoTooltip === 'Pause') {
         playButton.click()
       }
 
+      const validWord = validateWord(word)
+      let definitionStatus = ''
+      let definition
+
+      if (validWord !== '') {
+        const response = await GetDefinition(validWord)
+
+        if (response.status === 'failure') {
+          const oxfordResponse = await GetOxfordDefinition(validWord)
+
+          if (oxfordResponse.status === 'success') {
+            definitionStatus = oxfordResponse.status
+            definition = oxfordResponse.definition
+          }
+        } else {
+          definitionStatus = response.status
+          definition = response.definition
+        }
+      }
+
       const popupWindow = document.getElementById('wordbook-definition-popup')
       if (popupWindow) {
         popupWindow.remove()
-        CreateDefinitionPopup()
+        CreateDefinitionPopup(validWord, definitionStatus, definition)
       } else {
-        CreateDefinitionPopup()
+        CreateDefinitionPopup(validWord, definitionStatus, definition)
       }
     })
     return wordButton
   }
 
-  const CreateDefinitionPopup = () => {
+  const validateWord = (word) => {
+    const wordFormat1 = /(?:\w|['-]\w)+/
+
+    const extractWord = word.match(wordFormat1)
+
+    if (extractWord) {
+      return extractWord[0]
+    }
+
+    return ''
+  }
+
+  const CreateDefinitionPopup = (word, status, definition) => {
     const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
+    const playerContainer = document.getElementsByClassName('ytd-player')[0]
 
     const popupWindow = document.createElement('div')
     const captionWindowHeight = Math.round(document.getElementsByClassName('caption-window')[0].clientHeight)
 
     popupWindow.id = 'wordbook-definition-popup'
     popupWindow.style = `position: absolute; background: #FFFFFF; border-radius: 8px; box-sizing: border-box; padding: 16px 20px; z-index: 999; left: 25%; top: ${videoWindow.clientHeight - captionWindowHeight - popupWindow.clientHeight - 15}px`
-    videoWindow.appendChild(popupWindow)
+    playerContainer.appendChild(popupWindow)
+
+    const wordName = document.createElement('div')
+    wordName.id = 'wordbook-word-name'
+    wordName.style = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;'
+
+    popupWindow.appendChild(wordName)
+
+    const wordSpan = document.createElement('span')
+    wordSpan.style = 'height: auto; font-family: Poppins; font-style: normal; font-weight: 400; font-size: 20px; line-height: 20px; color: #0E0021; margin: 0 12px 0 0;'
+
+    wordName.appendChild(wordSpan)
+
+    const wordNameText = document.createElement('b')
+    wordNameText.innerText = word
+
+    wordSpan.appendChild(wordNameText)
+
+    const clearPopupButton = document.createElement('button')
+    const svg = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 1L1 13M1 1L13 13" stroke="#0E0021" stroke-opacity="0.2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    const icon = 'data:image/svg+xml;base64,' + window.btoa(svg)
+    clearPopupButton.style = 'background: transparent; border: none; cursor: pointer; padding: 0; -webkit-mask-image: url(' + icon + ');-webkit-mask-repeat: no-repeat;-webkit-box-align: center; width: 16px; height: 16px; background-color: #0E0021;'
+
+    clearPopupButton.addEventListener('click', function () {
+      const popup = document.getElementById('wordbook-definition-popup')
+      if (popup) {
+        popupWindow.remove()
+      }
+    })
+
+    wordName.appendChild(clearPopupButton)
+
+    CreateWordDefinition(status, definition)
 
     const playButton = document.getElementsByClassName('ytp-play-button')[0]
     playButton.addEventListener('click', function () {
@@ -219,144 +294,272 @@
       }
     })
 
+    const videoStream = document.getElementsByClassName('video-stream')[0]
+    videoStream.addEventListener('click', function () {
+      popupWindow.remove()
+    })
+
+    document.body.addEventListener('keydown', function (e) {
+      if (e.key === ' ' || e.code === 'Space') {
+        popupWindow.remove()
+      }
+    })
+
     UpdatePopupSize()
   }
 
-  // const GetDefinition = async (word) => {
-  //   const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
+  const CreateWordDefinition = (status, definition) => {
+    const wordPopup = document.getElementById('wordbook-definition-popup')
+    const wordPopupHeight = wordPopup.clientHeight
 
-  //   const response = await fetch(url, {
-  //     method: 'GET',
-  //     headers: {
-  //       'Content-Type': 'application/json'
-  //     }
-  //   })
+    const wordDefinition = document.createElement('div')
+    wordDefinition.id = 'word-definition-container'
+    wordDefinition.style = `overflow-y: auto !important; height: fit-content; max-height: ${wordPopupHeight - 70}px;`
 
-  //   if (response.status >= 200 && response.status < 210) {
-  //     const data = await response.json()
+    wordPopup.appendChild(wordDefinition)
 
-  //     if (data) {
-  //       const allMeanings = []
+    UpdateWordDefinitionContainerHeight()
 
-  //       data.forEach(sector => {
-  //         if (sector.meanings) {
-  //           sector.meanings.forEach(wordType => {
-  //             const meaning = {
-  //               partOfSpeech: '',
-  //               definitions: [{}]
-  //             }
+    if (status === 'failure') {
+      const failureMessage = document.createElement('div')
+      failureMessage.id = 'word-definition-failure'
+      failureMessage.innerText = "Sorry, couldn't get the word definition :("
+      failureMessage.style = 'background: #FAF5FF; border-radius: 4px; padding: 8px 12px;'
 
-  //             const foundedMeaning = allMeanings.find((meaning) => meaning.partOfSpeech === wordType.partOfSpeech)
+      wordDefinition.appendChild(failureMessage)
+    } else if (status === 'success' && definition) {
+      for (i = 0; i < definition.meanings.length; i++) {
+        const successContainer = document.createElement('p')
+        successContainer.id = `word-definition-success-container-${i + 1}`
+        successContainer.style = 'background: #FAF5FF; border-radius: 4px; padding: 8px 12px; display: grid;'
 
-  //             if (foundedMeaning) {
-  //               const indexToChange = allMeanings.indexOf(foundedMeaning)
+        wordDefinition.appendChild(successContainer)
 
-  //               if (wordType.definitions) {
-  //                 wordType.definitions.forEach(def => {
-  //                   foundedMeaning.definitions.push({ definition: def.definition })
-  //                 })
+        if (definition.meanings[i].partOfSpeech) {
+          const partOfSpeech = document.createElement('span')
+          partOfSpeech.style = 'font-family: Poppins; font-style: normal; font-weight: 500; font-size: 15px; line-height: 20px; color: #0E0021; margin-bottom: 5px;'
 
-  //                 allMeanings[indexToChange] = foundedMeaning
-  //               }
-  //             } else {
-  //               meaning.partOfSpeech = wordType.partOfSpeech
+          successContainer.appendChild(partOfSpeech)
 
-  //               if (wordType.definitions) {
-  //                 wordType.definitions.forEach(def => {
-  //                   meaning.definitions.push({ definition: def.definition })
-  //                 })
-  //               }
+          const partOfSpeechText = document.createElement('b')
+          partOfSpeechText.innerText = definition.meanings[i].partOfSpeech
 
-  //               allMeanings.push(meaning)
-  //             }
-  //           })
-  //         }
-  //       })
+          partOfSpeech.appendChild(partOfSpeechText)
+        }
 
-  //       const definition = {
-  //         status: 'success',
-  //         word: data[0].word,
-  //         meanings: allMeanings
-  //       }
+        const meanings = definition.meanings[i].definitions.slice(1, 4)
+        for (j = 0; j < meanings.length; j++) {
+          const realDefinition = document.createElement('span')
+          realDefinition.innerText = meanings[j].definition
+          realDefinition.style = 'font-family: Poppins; font-style: normal; font-weight: 400; font-size: 16px; line-height: 24px; color: rgba(14, 0, 33, 0.68);'
 
-  //       return {
-  //         status: 'success',
-  //         definition
-  //       }
-  //     }
-  //   } else {
-  //     return {
-  //       status: 'failure',
-  //       definition: ''
-  //     }
-  //   }
-  // }
+          successContainer.appendChild(realDefinition)
+        }
+      }
+    }
+  }
 
-  // const GetOxfordDefinition = async (word) => {
-  //   const url = `${WORDBOOK_API_URL}/api/v1/oxford/definition?word=${word}&language=en`
+  const GetPlayedSeconds = () => {
+    const youtubePlayer = document.querySelector('video')
 
-  //   const response = await fetch(url, {
-  //     method: 'GET',
-  //     headers: {
-  //       'Content-Type': 'application/json'
-  //     }
-  //   })
+    return youtubePlayer.currentTime
+  }
 
-  //   if (response.status >= 200 && response.status < 210) {
-  //     const data = await response.json()
+  const UpdateCaptionProps = () => {
+    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
+    new ResizeObserver(CalculateNewCaptionFontSize).observe(videoWindow)
+    new ResizeObserver(CalculateNewCaptionSize).observe(videoWindow)
+  }
 
-  //     if (data) {
-  //       let allMeanings = []
+  const UpdateWordDefinitionContainerHeight = () => {
+    const wordPopup = document.getElementById('wordbook-definition-popup')
+    new ResizeObserver(CalculateNewWordDefinitionHeight).observe(wordPopup)
+  }
 
-  //       data.results[0].lexicalEntries.forEach(def => {
-  //         const meaning = {
-  //           partOfSpeech: '',
-  //           definitions: [{}]
-  //         }
+  const UpdatePopupSize = () => {
+    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
+    new ResizeObserver(CalculatePopupSize).observe(videoWindow)
+  }
 
-  //         meaning.partOfSpeech = def.lexicalCategory.text
+  const CalculateNewWordDefinitionHeight = () => {
+    const wordPopup = document.getElementById('wordbook-definition-popup')
+    const wordPopupHeight = wordPopup.clientHeight
 
-  //         if (def.entries) {
-  //           def.entries.forEach(entry => {
-  //             if (entry.senses) {
-  //               entry.senses.forEach(sense => {
-  //                 if (sense.definitions) {
-  //                   meaning.definitions.push({ definition: sense.definitions[0] })
-  //                 }
+    const definitionContainer = document.getElementById('word-definition-container')
+    definitionContainer.style.maxHeight = `${wordPopupHeight - 70}px`
+  }
 
-  //                 if (sense.subsenses) {
-  //                   sense.subsenses.forEach(subsense => {
-  //                     if (subsense && subsense.definitions) {
-  //                       meaning.definitions.push({ definition: subsense.definitions[0] })
-  //                     }
-  //                   })
-  //                 }
-  //               })
-  //             }
-  //           })
-  //         }
+  const CalculatePopupSize = () => {
+    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
+    const width = videoWindow.clientWidth * 0.35
+    const height = videoWindow.clientHeight * 0.4
 
-  //         allMeanings = allMeanings.concat(meaning)
-  //       })
+    const popupWindow = document.getElementById('wordbook-definition-popup')
+    popupWindow.style.width = width + 'px'
+    popupWindow.style.height = height + 'px'
 
-  //       const definition = {
-  //         status: 'success',
-  //         word: data.word,
-  //         meanings: allMeanings
-  //       }
+    const captionWindowHeight = Math.round(document.getElementsByClassName('caption-window')[0].clientHeight)
 
-  //       return {
-  //         status: 'success',
-  //         definition
-  //       }
-  //     }
-  //   } else {
-  //     return {
-  //       status: 'failure',
-  //       definition: ''
-  //     }
-  //   }
-  // }
+    popupWindow.style.top = `${videoWindow.clientHeight - captionWindowHeight - popupWindow.clientHeight - 85}px`
+  }
+
+  const CalculateNewCaptionFontSize = () => {
+    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
+    const size = Math.sqrt((videoWindow.clientHeight * videoWindow.clientHeight) + (videoWindow.clientWidth * videoWindow.clientWidth))
+    const fontSize = size * 0.02
+
+    const captionText = document.getElementsByClassName('captions-text')[0]
+
+    for (j = 0; j < captionText.children.length; j++) {
+      captionText.children[j].style.fontSize = fontSize + 'px'
+    }
+  }
+
+  const CalculateNewCaptionSize = () => {
+    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
+    const width = videoWindow.clientWidth * 0.65
+    const height = videoWindow.clientHeight * 0.15
+
+    const captionWindow = document.getElementsByClassName('caption-window')[0]
+    captionWindow.style.width = width + 'px'
+    captionWindow.style.height = height + 'px'
+  }
+
+  const GetDefinition = async (word) => {
+    const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (response.status >= 200 && response.status < 210) {
+      const data = await response.json()
+
+      if (data) {
+        const allMeanings = []
+
+        data.forEach(sector => {
+          if (sector.meanings) {
+            sector.meanings.forEach(wordType => {
+              const meaning = {
+                partOfSpeech: '',
+                definitions: [{}]
+              }
+
+              const foundedMeaning = allMeanings.find((meaning) => meaning.partOfSpeech === wordType.partOfSpeech)
+
+              if (foundedMeaning) {
+                const indexToChange = allMeanings.indexOf(foundedMeaning)
+
+                if (wordType.definitions) {
+                  wordType.definitions.forEach(def => {
+                    foundedMeaning.definitions.push({ definition: def.definition })
+                  })
+
+                  allMeanings[indexToChange] = foundedMeaning
+                }
+              } else {
+                meaning.partOfSpeech = wordType.partOfSpeech
+
+                if (wordType.definitions) {
+                  wordType.definitions.forEach(def => {
+                    meaning.definitions.push({ definition: def.definition })
+                  })
+                }
+
+                allMeanings.push(meaning)
+              }
+            })
+          }
+        })
+
+        const definition = {
+          status: 'success',
+          word: data[0].word,
+          meanings: allMeanings
+        }
+
+        return {
+          status: 'success',
+          definition
+        }
+      }
+    } else {
+      return {
+        status: 'failure',
+        definition: ''
+      }
+    }
+  }
+
+  const GetOxfordDefinition = async (word) => {
+    const url = `${WORDBOOK_API_URL}/api/v1/oxford/definition?word=${word}&language=en`
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (response.status >= 200 && response.status < 210) {
+      const data = await response.json()
+
+      if (data) {
+        let allMeanings = []
+
+        data.results[0].lexicalEntries.forEach(def => {
+          const meaning = {
+            partOfSpeech: '',
+            definitions: [{}]
+          }
+
+          meaning.partOfSpeech = def.lexicalCategory.text
+
+          if (def.entries) {
+            def.entries.forEach(entry => {
+              if (entry.senses) {
+                entry.senses.forEach(sense => {
+                  if (sense.definitions) {
+                    meaning.definitions.push({ definition: sense.definitions[0] })
+                  }
+
+                  if (sense.subsenses) {
+                    sense.subsenses.forEach(subsense => {
+                      if (subsense && subsense.definitions) {
+                        meaning.definitions.push({ definition: subsense.definitions[0] })
+                      }
+                    })
+                  }
+                })
+              }
+            })
+          }
+
+          allMeanings = allMeanings.concat(meaning)
+        })
+
+        const definition = {
+          status: 'success',
+          word: data.word,
+          meanings: allMeanings
+        }
+
+        return {
+          status: 'success',
+          definition
+        }
+      }
+    } else {
+      return {
+        status: 'failure',
+        definition: ''
+      }
+    }
+  }
 
   const GetTranscript = async (videoId) => {
     const url = `${WORDBOOK_API_URL}/api/v1/transcript/${videoId}`
@@ -414,58 +617,5 @@
     }
 
     return dict
-  }
-
-  const GetPlayedSeconds = () => {
-    const youtubePlayer = document.querySelector('video')
-
-    return youtubePlayer.currentTime
-  }
-
-  const UpdateCaptionProps = () => {
-    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
-    new ResizeObserver(CalculateNewCaptionFontSize).observe(videoWindow)
-    new ResizeObserver(CalculateNewCaptionSize).observe(videoWindow)
-  }
-
-  const UpdatePopupSize = () => {
-    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
-    new ResizeObserver(CalculatePopupSize).observe(videoWindow)
-  }
-
-  const CalculatePopupSize = () => {
-    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
-    const width = videoWindow.clientWidth * 0.35
-    const height = videoWindow.clientHeight * 0.4
-
-    const popupWindow = document.getElementById('wordbook-definition-popup')
-    popupWindow.style.width = width + 'px'
-    popupWindow.style.height = height + 'px'
-
-    const captionWindowHeight = Math.round(document.getElementsByClassName('caption-window')[0].clientHeight)
-
-    popupWindow.style.top = `${videoWindow.clientHeight - captionWindowHeight - popupWindow.clientHeight - 85}px`
-  }
-
-  const CalculateNewCaptionFontSize = () => {
-    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
-    const size = Math.sqrt((videoWindow.clientHeight * videoWindow.clientHeight) + (videoWindow.clientWidth * videoWindow.clientWidth))
-    const fontSize = size * 0.02
-
-    const captionText = document.getElementsByClassName('captions-text')[0]
-
-    for (j = 0; j < captionText.children.length; j++) {
-      captionText.children[j].style.fontSize = fontSize + 'px'
-    }
-  }
-
-  const CalculateNewCaptionSize = () => {
-    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
-    const width = videoWindow.clientWidth * 0.65
-    const height = videoWindow.clientHeight * 0.15
-
-    const captionWindow = document.getElementsByClassName('caption-window')[0]
-    captionWindow.style.width = width + 'px'
-    captionWindow.style.height = height + 'px'
   }
 })()

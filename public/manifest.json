@@ -22,6 +22,12 @@
             "js": ["content-script.js"]
         }
     ],
+    "web_accessible_resources": [
+      {
+        "matches": ["https://*.youtube.com/*"],
+        "resources": [ "api-calls.js" ]
+      }
+    ],
     "icons": {
       "16": "./assets/icons/wordbook-logo.png",
       "192": "./assets/icons/wordbook-logo.png"
