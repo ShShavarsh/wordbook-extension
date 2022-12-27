@@ -147,19 +147,21 @@
     captionWindow.draggable = 'false'
 
     const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
-    const width = videoWindow.clientWidth * 0.65
-    const height = videoWindow.clientHeight * 0.15
+    if (videoWindow) {
+      const width = videoWindow.clientWidth * 0.65
+      const height = videoWindow.clientHeight * 0.15
 
-    captionWindow.setAttribute('style', 'touch-action: none; text-align: left; overflow: hidden; left: 12%; bottom: 1%; width: ' + width + 'px; height: ' + height + 'px; visibility: hidden;')
-    captionWindowContainer.appendChild(captionWindow)
+      captionWindow.setAttribute('style', 'touch-action: none; text-align: left; overflow: hidden; left: 12%; bottom: 1%; width: ' + width + 'px; height: ' + height + 'px; visibility: hidden;')
+      captionWindowContainer.appendChild(captionWindow)
 
-    const captionText = document.createElement('span')
-    captionText.className = 'captions-text'
-    captionText.setAttribute('style', 'overflow-wrap: normal; display:block; text-align: -webkit-center;')
+      const captionText = document.createElement('span')
+      captionText.className = 'captions-text'
+      captionText.setAttribute('style', 'overflow-wrap: normal; display:block; text-align: -webkit-center;')
 
-    captionWindow.appendChild(captionText)
+      captionWindow.appendChild(captionText)
 
-    return captionText
+      return captionText
+    }
   }
 
   const SetCurrentSubtitle = (captionSegment) => {
@@ -186,7 +188,7 @@
     const size = Math.sqrt((videoWindow.clientHeight * videoWindow.clientHeight) + (videoWindow.clientWidth * videoWindow.clientWidth))
     const fontSize = size * 0.02
 
-    wordButton.style = 'cursor: pointer; display: inline-block; white-space: pre-wrap; border: none; padding: 5px 5px; background: rgba(8,8,8, 0.75); font-size: ' + fontSize + 'px; color: rgb(255,255,255); fill: rgb(255,255,255); font-family: "Youtube Noto", Roboto, "Arial Unicode Ms", Arial, Helvetica, Verdana, "PT Sans Caption",sans-serif'
+    wordButton.style = 'cursor: pointer; display: inline-block; white-space: pre-wrap; border: none; padding: 5px 5px 8px; background: rgba(8,8,8, 0.75); font-size: ' + fontSize + 'px; color: rgb(255,255,255); fill: rgb(255,255,255); font-family: "Youtube Noto", Roboto, "Arial Unicode Ms", Arial, Helvetica, Verdana, "PT Sans Caption",sans-serif'
     wordButton.innerText = word
     wordButton.addEventListener('mouseover', function () {
       wordButton.style.fontWeight = 'bold'
@@ -252,7 +254,7 @@
     const captionWindowHeight = Math.round(document.getElementsByClassName('caption-window')[0].clientHeight)
 
     popupWindow.id = 'wordbook-definition-popup'
-    popupWindow.style = `position: absolute; background: #FFFFFF; border-radius: 8px; box-sizing: border-box; padding: 16px 20px; z-index: 999; left: 25%; top: ${videoWindow.clientHeight - captionWindowHeight - popupWindow.clientHeight - 15}px`
+    popupWindow.style = `position: absolute; display: flex; flex-direction: column; background: #FFFFFF; border-radius: 8px; box-sizing: border-box; padding: 16px 20px; z-index: 999; left: 25%; top: ${videoWindow.clientHeight - captionWindowHeight - popupWindow.clientHeight - 15}px`
     playerContainer.appendChild(popupWindow)
 
     const wordName = document.createElement('div')
@@ -287,6 +289,43 @@
 
     CreateWordDefinition(status, definition)
 
+    const translationOption = document.createElement('div')
+    translationOption.style = 'display: flex; flex-direction: row; align-items: center; padding: 0px; gap: 8px; width: 150px; margin-top: 7px; margin-bottom: 7px;'
+    popupWindow.appendChild(translationOption)
+
+    const translateTo = document.createElement('span')
+    translateTo.style = 'font-family: "Poppins"; font-style: normal; font-weight: 600; margin-top: 5px; font-size: 16px; line-height: 20px; display: flex; align-items: center; text-align: center; color: #0E0021; flex: none; order: 0; flex-grow: 0;'
+    translateTo.innerText = 'Translate to'
+    translationOption.appendChild(translateTo)
+
+    const translationExpander = document.createElement('button')
+
+    const expanderSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 9L12 15L18 9" stroke="#7000FF" stroke-opacity="0.68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> </svg>'
+    const expanderIcon = 'data:image/svg+xml;base64,' + window.btoa(expanderSvg)
+    const collapseSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M18 15L12 9L6 15" stroke="#7000FF" stroke-opacity="0.68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> </svg>'
+    const collapseIcon = 'data:image/svg+xml;base64,' + window.btoa(collapseSvg)
+
+    const translationExpanderStyle = 'cursor: pointer; padding: 0; -webkit-mask-repeat: no-repeat;-webkit-box-align: center; width: 20px; height: 16px; background-color: #7000FF;'
+    const translationIconStyle = '-webkit-mask-image: url(' + expanderIcon + ');'
+
+    translationExpander.style = translationExpanderStyle + translationIconStyle
+    translationExpander.ariaExpanded = 'true'
+    translationOption.appendChild(translationExpander)
+
+    translationExpander.addEventListener('click', function () {
+      if (translationExpander.ariaExpanded === 'true') {
+        translationExpander.style = translationExpanderStyle + `-webkit-mask-image: url(${collapseIcon});`
+        translationExpander.ariaExpanded = 'false'
+
+        CreateTranslationBox()
+      } else {
+        translationExpander.style = translationExpanderStyle + `-webkit-mask-image: url(${expanderIcon});`
+        translationExpander.ariaExpanded = 'true'
+
+        ClearTranslationBox()
+      }
+    })
+
     const playButton = document.getElementsByClassName('ytp-play-button')[0]
     playButton.addEventListener('click', function () {
       if (playButton.dataset.titleNoTooltip === 'Play') {
@@ -306,6 +345,71 @@
     })
 
     UpdatePopupSize()
+  }
+
+  const CreateTranslationBox = () => {
+    const popupWindow = document.getElementById('wordbook-definition-popup')
+
+    const languageBox = document.createElement('div')
+    languageBox.id = 'wordbook-translation-language-box'
+    languageBox.style = 'border: 3px solid #F5EDFF; border-radius: 12px; min-height: 80px; max-height: 80px; overflow-y: scroll; overflow-x: hidden;'
+    popupWindow.appendChild(languageBox)
+
+    // const sourceLanguages = ['bg', 'zh', 'cs', 'da', 'nl', 'en', 'et', 'fi', 'fr', 'de', 'el', 'hu', 'id', 'it', 'ja', 'lv', 'lt', 'pl', 'pt', 'ro', 'ru', 'sl', 'sk', 'es', 'sv', 'tr', 'uk']
+    const targetLanguages = [
+      { lang: 'bg', country: 'Bulgarian' },
+      { lang: 'zh', country: 'Chinese' },
+      { lang: 'bg', country: 'Czech' },
+      { lang: 'da', country: 'Danish' },
+      { lang: 'nl', country: 'Dutch' },
+      { lang: 'en-us', country: 'English(USA)' },
+      { lang: 'en-gb', country: 'English' },
+      { lang: 'et', country: 'Estonian' },
+      { lang: 'fi', country: 'Finnish' },
+      { lang: 'fr', country: 'French' },
+      { lang: 'de', country: 'German' },
+      { lang: 'el', country: 'Greek' },
+      { lang: 'hu', country: 'Hungarian' },
+      { lang: 'id', country: 'Indonesian' },
+      { lang: 'it', country: 'Italian' },
+      { lang: 'ja', country: 'Japanese' },
+      { lang: 'lv', country: 'Latvian' },
+      { lang: 'lt', country: 'Lithuanian' },
+      { lang: 'pl', country: 'Polish' },
+      { lang: 'pt-pt', country: 'Portugese' },
+      { lang: 'pt-br', country: 'Portugese(Brazilian)' },
+      { lang: 'ro', country: 'Romanian' },
+      { lang: 'ru', country: 'Russian' },
+      { lang: 'sk', country: 'Slovak' },
+      { lang: 'sl', country: 'Slovenian' },
+      { lang: 'es', country: 'Spanish' },
+      { lang: 'sv', country: 'Swedish' },
+      { lang: 'tr', country: 'Turkish' },
+      { lang: 'uk', country: 'Ukrainian' }
+    ]
+
+    for (i = 0; i < targetLanguages.length; i++) {
+      const language = document.createElement('button')
+      language.innerText = targetLanguages[i].country
+      language.style = 'font-family: "Poppins"; cursor: pointer; width: 130px; background: transparent; border: none; font-style: normal; font-weight: 500; font-size: 16px; line-height: 30px; color: #0E0021; mix-blend-mode: normal;'
+
+      language.addEventListener('mouseover', function () {
+        language.style.color = '#7000FF'
+      })
+
+      language.addEventListener('mouseout', function () {
+        language.style.color = '#0E0021'
+      })
+
+      languageBox.appendChild(language)
+    }
+  }
+
+  const ClearTranslationBox = () => {
+    const translationBox = document.getElementById('wordbook-translation-language-box')
+    if (translationBox) {
+      translationBox.remove()
+    }
   }
 
   const CreateWordDefinition = (status, definition) => {
@@ -392,7 +496,7 @@
   const CalculatePopupSize = () => {
     const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
     const width = videoWindow.clientWidth * 0.35
-    const height = videoWindow.clientHeight * 0.4
+    const height = videoWindow.clientHeight * 0.5
 
     const popupWindow = document.getElementById('wordbook-definition-popup')
     popupWindow.style.width = width + 'px'
