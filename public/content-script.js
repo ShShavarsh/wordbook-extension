@@ -60,7 +60,7 @@
       const currentIndex = Math.floor(currentTime / 5)
 
       if (currentIndex !== index) {
-        if (currentTime >= transcript[currentIndex].start) {
+        if (transcript[currentIndex] && transcript[currentIndex].start && currentTime >= transcript[currentIndex].start) {
           index = currentIndex
           SetCurrentSubtitle(transcript[currentIndex].text)
         }
@@ -294,11 +294,13 @@
     popupWindow.appendChild(translationOption)
 
     const translateTo = document.createElement('span')
+    translateTo.id = 'wordbook-translate-to'
     translateTo.style = 'font-family: "Poppins"; font-style: normal; font-weight: 600; margin-top: 5px; font-size: 16px; line-height: 20px; display: flex; align-items: center; text-align: center; color: #0E0021; flex: none; order: 0; flex-grow: 0;'
     translateTo.innerText = 'Translate to'
     translationOption.appendChild(translateTo)
 
     const translationExpander = document.createElement('button')
+    translationExpander.id = 'wordbook-translation-expander'
 
     const expanderSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 9L12 15L18 9" stroke="#7000FF" stroke-opacity="0.68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> </svg>'
     const expanderIcon = 'data:image/svg+xml;base64,' + window.btoa(expanderSvg)
@@ -309,18 +311,23 @@
     const translationIconStyle = '-webkit-mask-image: url(' + expanderIcon + ');'
 
     translationExpander.style = translationExpanderStyle + translationIconStyle
-    translationExpander.ariaExpanded = 'true'
+    translationExpander.ariaExpanded = 'false'
     translationOption.appendChild(translationExpander)
 
     translationExpander.addEventListener('click', function () {
-      if (translationExpander.ariaExpanded === 'true') {
+      if (translationExpander.ariaExpanded === 'false') {
         translationExpander.style = translationExpanderStyle + `-webkit-mask-image: url(${collapseIcon});`
-        translationExpander.ariaExpanded = 'false'
+        translationExpander.ariaExpanded = 'true'
 
-        CreateTranslationBox()
+        const translation = document.getElementById('wordbook-translation-container-final')
+        if (translation) {
+          translation.remove()
+        }
+
+        CreateTranslationBox(word)
       } else {
         translationExpander.style = translationExpanderStyle + `-webkit-mask-image: url(${expanderIcon});`
-        translationExpander.ariaExpanded = 'true'
+        translationExpander.ariaExpanded = 'false'
 
         ClearTranslationBox()
       }
@@ -347,7 +354,7 @@
     UpdatePopupSize()
   }
 
-  const CreateTranslationBox = () => {
+  const CreateTranslationBox = (word) => {
     const popupWindow = document.getElementById('wordbook-definition-popup')
 
     const languageBox = document.createElement('div')
@@ -362,8 +369,6 @@
       { lang: 'bg', country: 'Czech' },
       { lang: 'da', country: 'Danish' },
       { lang: 'nl', country: 'Dutch' },
-      { lang: 'en-us', country: 'English(USA)' },
-      { lang: 'en-gb', country: 'English' },
       { lang: 'et', country: 'Estonian' },
       { lang: 'fi', country: 'Finnish' },
       { lang: 'fr', country: 'French' },
@@ -377,7 +382,6 @@
       { lang: 'lt', country: 'Lithuanian' },
       { lang: 'pl', country: 'Polish' },
       { lang: 'pt-pt', country: 'Portugese' },
-      { lang: 'pt-br', country: 'Portugese(Brazilian)' },
       { lang: 'ro', country: 'Romanian' },
       { lang: 'ru', country: 'Russian' },
       { lang: 'sk', country: 'Slovak' },
@@ -399,6 +403,31 @@
 
       language.addEventListener('mouseout', function () {
         language.style.color = '#0E0021'
+      })
+
+      language.addEventListener('click', async function () {
+        const translateTo = document.getElementById('wordbook-translate-to')
+        translateTo.innerText = language.innerText
+
+        const translationExpander = document.getElementById('wordbook-translation-expander')
+        translationExpander.click()
+
+        const translation = await GetTranslation(word, 'en', targetLanguages.find(l => l.country === language.innerText).lang)
+
+        if (translation.status === 'success') {
+          const successContainer = document.createElement('p')
+          successContainer.id = 'wordbook-translation-container-final'
+          successContainer.style = 'background: #FAF5FF; border-radius: 4px; padding: 8px 12px; display: grid;'
+
+          popupWindow.appendChild(successContainer)
+
+          const translationFinal = document.createElement('span')
+          translationFinal.id = 'wordbook-translation-final-word'
+          translationFinal.style = 'font-family: Poppins; font-style: normal; font-weight: 500; font-size: 15px; line-height: 20px; color: #0E0021; margin-bottom: 5px;'
+          translationFinal.innerText = translation.translation
+
+          successContainer.appendChild(translationFinal)
+        }
       })
 
       languageBox.appendChild(language)
@@ -596,6 +625,36 @@
         status: 'failure',
         definition: ''
       }
+    }
+  }
+
+  const GetTranslation = async (word, srcLang, toLang) => {
+    const url = `${WORDBOOK_API_URL}/api/v2/rapid/deepl/translate?tl=${toLang}&sl=${srcLang}&text=${word}`
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (response.status >= 200 && response.status < 210) {
+      const data = await response.json()
+
+      if (data) {
+        return {
+          status: 'success',
+          translation: data.text
+        }
+      } else {
+        return {
+          status: 'failure'
+        }
+      }
+    }
+
+    return {
+      status: 'failure'
     }
   }
 
