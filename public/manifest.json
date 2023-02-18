@@ -18,6 +18,7 @@
     "content_scripts": [
         {
             "matches": ["https://*.youtube.com/*"],
+            "css": [ "loading-spinner.css" ],
             "all_frames": true,
             "js": ["content-script.js"]
         }
