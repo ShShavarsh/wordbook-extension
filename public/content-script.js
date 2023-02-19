@@ -5,6 +5,8 @@
   chrome.runtime.onMessage.addListener(async (obj, sender, response) => {
     const { type, videoId } = obj
 
+    ClearPopup()
+
     InitializeWordbook()
 
     SetScrollbarCss()
@@ -36,6 +38,13 @@
     }
     const headElement = document.head
     headElement.appendChild(customStyle)
+  }
+
+  const ClearPopup = () => {
+    const popupWindow = document.getElementById('wordbook-definition-popup')
+    if (popupWindow) {
+      popupWindow.remove()
+    }
   }
 
   const InitializeWordbook = () => {
@@ -167,7 +176,11 @@
   }
 
   const SetCurrentSubtitle = (captionSegment) => {
-    const captionText = document.getElementsByClassName('captions-text')[0]
+    const captionTexts = document.getElementsByClassName('captions-text')
+    let captionText
+    if (captionTexts && captionTexts[0]) {
+      captionText = captionTexts[0]
+    }
 
     for (j = captionText.children.length - 1; j >= 0; j--) {
       captionText.removeChild(captionText.children[j])
@@ -219,10 +232,8 @@
 
           lastDefinitionResponse = oxfordResponse
 
-          if (oxfordResponse.status === 'success') {
-            definitionStatus = oxfordResponse.status
-            definition = oxfordResponse.definition
-          }
+          definitionStatus = oxfordResponse.status
+          definition = oxfordResponse.definition
         } else {
           definitionStatus = response.status
           definition = response.definition
@@ -447,35 +458,42 @@
         popupWindow.insertBefore(spinner, addToDictionaryContainer)
 
         const translation = await GetTranslation(word, 'en', targetLanguages.find(l => l.country === language.innerText).lang)
+
         spinner.remove()
 
         CreateWordDefinition(lastDefinitionResponse.status, lastDefinitionResponse.definition)
 
         if (translation.status === 'success') {
-          const translationSuccessContainer = document.createElement('p')
-          translationSuccessContainer.id = 'wordbook-translation-container'
-          translationSuccessContainer.style = 'background: rgb(250, 245, 255); border-radius: 4px; padding: 8px 12px; display: grid; margin-bottom: 10px;'
-
-          const wordDefinitionContainer = document.getElementById('word-definition-container')
-          wordDefinitionContainer.insertBefore(translationSuccessContainer, wordDefinitionContainer.firstChild)
-
-          const translationLanguageText = document.createElement('span')
-          translationLanguageText.style = 'font-style: normal; font-weight: 500; font-size: 15px; line-height: 20px; color: #0E0021; margin-bottom: 5px;'
-          translationLanguageText.innerText = `${language.innerText} translation`
-
-          translationSuccessContainer.appendChild(translationLanguageText)
-
-          const actualTranslation = document.createElement('span')
-          actualTranslation.id = 'wordbook-actual-translation'
-          actualTranslation.style = 'font-style: normal; font-weight: 400; font-size: 16px; line-height: 24px; color: rgba(14, 0, 33, 0.68); margin-bottom: 5px;'
-          actualTranslation.innerText = translation.translation
-
-          translationSuccessContainer.appendChild(actualTranslation)
+          CreateTranslationBox(`${language.innerText} translation`, translation.translation)
+        } else {
+          CreateTranslationBox(`${language.innerText} translation`, 'Sorry! Couldn\'t get the translation.')
         }
       })
 
       translationContainer.appendChild(language)
     }
+  }
+
+  const CreateTranslationBox = (title, actualTranslation) => {
+    const translationSuccessContainer = document.createElement('p')
+    translationSuccessContainer.id = 'wordbook-translation-container'
+    translationSuccessContainer.style = 'background: rgb(250, 245, 255); border-radius: 4px; padding: 8px 12px; display: grid; margin-bottom: 10px;'
+
+    const wordDefinitionContainer = document.getElementById('word-definition-container')
+    wordDefinitionContainer.insertBefore(translationSuccessContainer, wordDefinitionContainer.firstChild)
+
+    const translationLanguageText = document.createElement('span')
+    translationLanguageText.style = 'font-style: normal; font-weight: 500; font-size: 15px; line-height: 20px; color: #0E0021; margin-bottom: 5px;'
+    translationLanguageText.innerText = title
+
+    translationSuccessContainer.appendChild(translationLanguageText)
+
+    const actualTranslationLine = document.createElement('span')
+    actualTranslationLine.id = 'wordbook-actual-translation'
+    actualTranslationLine.style = 'font-style: normal; font-weight: 400; font-size: 16px; line-height: 24px; color: rgba(14, 0, 33, 0.68); margin-bottom: 5px;'
+    actualTranslationLine.innerText = actualTranslation
+
+    translationSuccessContainer.appendChild(actualTranslationLine)
   }
 
   const CreateWordDefinition = (status, definition) => {
@@ -493,12 +511,18 @@
     UpdateWordDefinitionContainerHeight()
 
     if (status === 'failure') {
-      const failureMessage = document.createElement('div')
-      failureMessage.id = 'word-definition-failure'
-      failureMessage.innerText = "Sorry, couldn't get the word definition :("
-      failureMessage.style = 'background: #FAF5FF; border-radius: 4px; padding: 8px 12px;'
+      const definitionContainer = document.createElement('p')
+      definitionContainer.id = 'word-definition-failure-container'
+      definitionContainer.style = 'background: rgb(250, 245, 255); border-radius: 4px; padding: 8px 12px; display: grid;'
 
-      wordDefinition.appendChild(failureMessage)
+      wordDefinition.appendChild(definitionContainer)
+
+      const failureMessage = document.createElement('span')
+      failureMessage.id = 'word-definition-failure'
+      failureMessage.innerText = "Sorry! Couldn't get the word definition."
+      failureMessage.style = 'font-style: normal; font-weight: 400; font-size: 16px; line-height: 24px; color: rgba(14, 0, 33, 0.68); margin-bottom: 5px;'
+
+      definitionContainer.appendChild(failureMessage)
     } else if (status === 'success' && definition) {
       for (i = 0; i < definition.meanings.length; i++) {
         const successContainer = document.createElement('p')
@@ -564,8 +588,10 @@
 
   const UpdateCaptionProps = () => {
     const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
-    new ResizeObserver(CalculateNewCaptionFontSize).observe(videoWindow)
-    new ResizeObserver(CalculateNewCaptionSize).observe(videoWindow)
+    if (videoWindow) {
+      new ResizeObserver(CalculateNewCaptionFontSize).observe(videoWindow)
+      new ResizeObserver(CalculateNewCaptionSize).observe(videoWindow)
+    }
   }
 
   const UpdateWordDefinitionContainerHeight = () => {
@@ -580,16 +606,24 @@
 
   const CalculateNewWordDefinitionHeight = () => {
     const wordPopup = document.getElementById('wordbook-definition-popup')
-    const wordPopupHeight = wordPopup.clientHeight
+    if (wordPopup) {
+      const wordPopupHeight = wordPopup.clientHeight
 
-    const definitionContainer = document.getElementById('word-definition-container')
-    if (definitionContainer) {
-      definitionContainer.style.maxHeight = `${wordPopupHeight - 70}px`
+      const definitionContainer = document.getElementById('word-definition-container')
+      if (definitionContainer) {
+        definitionContainer.style.maxHeight = `${wordPopupHeight - 70}px`
+      }
     }
   }
 
   const CalculatePopupSize = () => {
-    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
+    const videoWindowContainer = document.getElementsByClassName('ytp-caption-window-container')
+
+    if (!videoWindowContainer || !videoWindowContainer[0]) {
+      return
+    }
+
+    const videoWindow = videoWindowContainer[0]
 
     let width
     let height
@@ -616,6 +650,11 @@
     }
 
     const popupWindow = document.getElementById('wordbook-definition-popup')
+
+    if (!popupWindow) {
+      return
+    }
+
     popupWindow.style.width = width + 'px'
     popupWindow.style.height = height + 'px'
 
@@ -635,7 +674,14 @@
   }
 
   const CalculateNewCaptionFontSize = () => {
-    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
+    const videoWindowContainer = document.getElementsByClassName('ytp-caption-window-container')
+
+    if (!videoWindowContainer || !videoWindowContainer[0]) {
+      return
+    }
+
+    const videoWindow = videoWindowContainer[0]
+
     const size = Math.sqrt((videoWindow.clientHeight * videoWindow.clientHeight) + (videoWindow.clientWidth * videoWindow.clientWidth))
     const fontSize = size * 0.02
 
@@ -647,7 +693,14 @@
   }
 
   const CalculateNewCaptionSize = () => {
-    const videoWindow = document.getElementsByClassName('ytp-caption-window-container')[0]
+    const videoWindowContainer = document.getElementsByClassName('ytp-caption-window-container')
+
+    if (!videoWindowContainer || !videoWindowContainer[0]) {
+      return
+    }
+
+    const videoWindow = videoWindowContainer[0]
+
     const width = videoWindow.clientWidth * 0.65
     const height = videoWindow.clientHeight * 0.15
 
