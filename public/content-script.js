@@ -2,10 +2,18 @@
 (async () => {
   const WORDBOOK_API_URL = 'https://wordbook.pro'
 
+  let lastVideoId = ''
+
   chrome.runtime.onMessage.addListener(async (obj, sender, response) => {
     const { type, videoId } = obj
 
-    ClearPopup()
+    if (type === 'NEW') {
+      if (lastVideoId === '' || lastVideoId !== videoId) {
+        ClearPopup()
+      }
+    }
+
+    lastVideoId = videoId
 
     InitializeWordbook()
 
@@ -19,10 +27,6 @@
 
     if (transcript !== null) {
       SetSubtitle(transcript)
-    }
-
-    if (type === 'NEW') {
-      //
     }
   })
 
@@ -41,6 +45,7 @@
   }
 
   const ClearPopup = () => {
+    console.log('aaaaaaaaaa')
     const popupWindow = document.getElementById('wordbook-definition-popup')
     if (popupWindow) {
       popupWindow.remove()
