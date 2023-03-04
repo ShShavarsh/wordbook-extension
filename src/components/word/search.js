@@ -13,7 +13,8 @@ const Search = () => {
         placeholder='Search words in history'
         inputProp={{
           style: {
-            height: '48px'
+            height: '48px',
+            border: 'none'
           }
         }}
         InputProps={{
@@ -31,12 +32,12 @@ const Search = () => {
         sx={{
           boxSizing: 'border-box',
           backgroundColor: 'rgb(112, 0, 255, 0.08)',
-          border: '1px solid rgba(112, 0, 255, 0.2)',
           borderRadius: '8px',
           '& .MuiOutlinedInput-root': {
+            border: '1px solid rgba(112, 0, 255, 0.4)',
+            borderRadius: '8px',
             '&:hover fieldset': {
-              backgroundColor: 'rgb(112, 0, 255, 0.08)',
-              border: '1px solid rgba(112, 0, 255, 0.2)'
+              border: '1px solid rgba(112, 0, 255, 0.4)'
             }
           }
         }}>
