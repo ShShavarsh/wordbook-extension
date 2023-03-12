@@ -13,17 +13,23 @@
       }
     }
 
-    lastVideoId = videoId
+    const transcript = await GetTranscript(videoId)
 
-    InitializeWordbook()
+    if (transcript) {
+      InitializeWordbook('available')
+      InitializeDownloadTranscriptButton('available', videoId)
+    } else {
+      InitializeWordbook('unavailable')
+      InitializeDownloadTranscriptButton('unavailable', videoId)
+    }
+
+    lastVideoId = videoId
 
     SetScrollbarCss()
 
     if (document.getElementById('caption-window-wordbook') === null) {
       CreateCaptionText()
     }
-
-    const transcript = await GetTranscript(videoId)
 
     if (transcript !== null) {
       SetSubtitle(transcript)
@@ -45,23 +51,35 @@
   }
 
   const ClearPopup = () => {
-    console.log('aaaaaaaaaa')
     const popupWindow = document.getElementById('wordbook-definition-popup')
     if (popupWindow) {
       popupWindow.remove()
     }
   }
 
-  const InitializeWordbook = () => {
+  const InitializeWordbook = (status) => {
     if (document.getElementById('wordbook-button') === null) {
       const elementPanel = document.getElementsByClassName('ytp-right-controls')[0]
-      const wordbookButton = CreateWordbookButton()
+      const wordbookButton = CreateWordbookButton(status)
       elementPanel.insertBefore(wordbookButton, elementPanel.children[2])
     } else {
       const elementPanel = document.getElementsByClassName('ytp-right-controls')[0]
       elementPanel.removeChild(elementPanel.children[2])
-      const wordbookButton = CreateWordbookButton()
+      const wordbookButton = CreateWordbookButton(status)
       elementPanel.insertBefore(wordbookButton, elementPanel.children[2])
+    }
+  }
+
+  const InitializeDownloadTranscriptButton = (status, videoId) => {
+    if (document.getElementById('wordbook-download-transcript') === null) {
+      const elementPanel = document.getElementsByClassName('ytp-right-controls')[0]
+      const wordbookDownloadTranscriptButton = CreateDownloadTranscriptButton(status, videoId)
+      elementPanel.insertBefore(wordbookDownloadTranscriptButton, elementPanel.children[3])
+    } else {
+      const elementPanel = document.getElementsByClassName('ytp-right-controls')[0]
+      elementPanel.removeChild(elementPanel.children[3])
+      const wordbookDownloadTranscriptButton = CreateDownloadTranscriptButton(status, videoId)
+      elementPanel.insertBefore(wordbookDownloadTranscriptButton, elementPanel.children[3])
     }
   }
 
@@ -84,7 +102,7 @@
     }, 100)
   }
 
-  const CreateWordbookButton = () => {
+  const CreateWordbookButton = (status) => {
     const wordbookButton = document.createElement('button')
     wordbookButton.id = 'wordbook-button'
     wordbookButton.className = 'ytp-button wordbook'
@@ -93,7 +111,25 @@
     wordbookButton.setAttribute('style', 'background-color: white; opacity: 0.5;-webkit-mask-image: url(' + logo + ');-webkit-mask-repeat: no-repeat;-webkit-box-align: center;vertical-align: middle;margin-right: -13px;margin-left: 9px; margin-bottom: 12px;')
     wordbookButton.ariaPressed = false
 
+    if (status === 'available') {
+      wordbookButton.title = 'Turn on/off the Wordbook captions.'
+    } else {
+      wordbookButton.title = 'Wordbook captions are unavailable for this video.'
+      return wordbookButton
+    }
+
     const subtitleButton = document.getElementsByClassName('ytp-right-controls')[0].children[1]
+
+    wordbookButton.addEventListener('mouseover', function () {
+      wordbookButton.style.opacity = 1
+    })
+
+    wordbookButton.addEventListener('mouseout', function () {
+      if (wordbookButton.ariaPressed === 'true') {
+        return
+      }
+      wordbookButton.style.opacity = 0.5
+    })
 
     wordbookButton.addEventListener('click', function () {
       const subtitleButton = document.getElementsByClassName('ytp-right-controls')[0].children[1]
@@ -132,6 +168,45 @@
     })
 
     return wordbookButton
+  }
+
+  const CreateDownloadTranscriptButton = (status, videoId) => {
+    const wordbookDownloadTranscriptButton = document.createElement('button')
+    wordbookDownloadTranscriptButton.id = 'wordbook-download-transcript'
+    wordbookDownloadTranscriptButton.className = 'ytp-button wordbook wordbook-transcript'
+    const svg = '<svg width="27" height="27" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M28 20V21.6C28 23.8402 28 24.9603 27.564 25.816C27.1805 26.5686 26.5686 27.1805 25.816 27.564C24.9603 28 23.8402 28 21.6 28H10.4C8.15979 28 7.03969 28 6.18404 27.564C5.43139 27.1805 4.81947 26.5686 4.43597 25.816C4 24.9603 4 23.8402 4 21.6V20M22.6667 13.3333L16 20M16 20L9.33333 13.3333M16 20V4" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> </svg>'
+    const logo = 'data:image/svg+xml;base64,' + window.btoa(svg)
+    wordbookDownloadTranscriptButton.setAttribute('style', 'background-color: white; opacity: 0.5;-webkit-mask-image: url(' + logo + ');-webkit-mask-repeat: no-repeat;-webkit-box-align: center;vertical-align: middle;margin-right: -15px;margin-left: 9px; margin-bottom: 23px;')
+
+    if (status === 'available') {
+      wordbookDownloadTranscriptButton.title = 'Download the video\'s subtitles.'
+    } else {
+      wordbookDownloadTranscriptButton.title = 'The subtitles are unavailable for this video.'
+      return wordbookDownloadTranscriptButton
+    }
+
+    wordbookDownloadTranscriptButton.addEventListener('mouseover', function () {
+      wordbookDownloadTranscriptButton.style.opacity = 1
+    })
+
+    wordbookDownloadTranscriptButton.addEventListener('mouseout', function () {
+      wordbookDownloadTranscriptButton.style.opacity = 0.5
+    })
+
+    wordbookDownloadTranscriptButton.addEventListener('click', async function () {
+      const result = await GetTranscriptAsPlainText(videoId)
+
+      if (result.status === 'success') {
+        const blob = new Blob([result.data], { type: 'text/plain' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.download = 'transcript.txt'
+        link.href = url
+        link.click()
+      }
+    })
+
+    return wordbookDownloadTranscriptButton
   }
 
   // const TransformCaptions = () => {
@@ -295,17 +370,26 @@
 
     wordSpan.appendChild(wordNameText)
 
+    const translateDiv = document.createElement('div')
+    translateDiv.id = 'wordbook-translate-container'
+    translateDiv.style = 'cursor: pointer; flex: none; order: 0; flex-grow: 0; float: right; margin-right: 25px'
+    translateDiv.ariaPressed = 'false'
+
+    const translateSpan = document.createElement('span')
+    translateSpan.id = 'wordbook-translate-word-span'
+    translateSpan.innerText = 'Translate'
+    translateSpan.style = 'font-style: normal; font-weight: 500; font-size: 16px; line-height: 24px; color: rgb(112, 0, 255, 0.6); mix-blend-mode: normal; flex-grow: 0; float: right;'
+
     const translationButton = document.createElement('button')
     translationButton.id = 'wordbook-translation-button'
-    const translationSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M12.913 17H20.087M12.913 17L11 21M12.913 17L15.7783 11.009C16.0092 10.5263 16.1246 10.2849 16.2826 10.2086C16.4199 10.1423 16.5801 10.1423 16.7174 10.2086C16.8754 10.2849 16.9908 10.5263 17.2217 11.009L20.087 17M20.087 17L22 21M2 5H8M8 5H11.5M8 5V3M11.5 5H14M11.5 5C11.0039 7.95729 9.85259 10.6362 8.16555 12.8844M10 14C9.38747 13.7248 8.76265 13.3421 8.16555 12.8844M8.16555 12.8844C6.81302 11.8478 5.60276 10.4266 5 9M8.16555 12.8844C6.56086 15.0229 4.47143 16.7718 2 18" stroke="#7000FF" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> </svg>'
+    const translationSvg = '<svg width="22" height="20" viewBox="0 0 22 20" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M11.913 15H19.087M11.913 15L10 19M11.913 15L14.7783 9.00902C15.0092 8.52627 15.1246 8.2849 15.2826 8.20862C15.4199 8.14228 15.5801 8.14228 15.7174 8.20862C15.8754 8.2849 15.9908 8.52627 16.2217 9.00902L19.087 15M19.087 15L21 19M1 3H7M7 3H10.5M7 3V1M10.5 3H13M10.5 3C10.0039 5.95729 8.85259 8.63618 7.16555 10.8844M9 12C8.38747 11.7248 7.76265 11.3421 7.16555 10.8844M7.16555 10.8844C5.81302 9.84776 4.60276 8.42664 4 7M7.16555 10.8844C5.56086 13.0229 3.47143 14.7718 1 16" stroke="#7000FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> </svg>'
     const translationIcon = 'data:image/svg+xml;base64,' + window.btoa(translationSvg)
-    translationButton.style = 'background: rgba(112, 0, 255, 0.6); border: none; cursor: pointer; padding: 0; -webkit-mask-image: url(' + translationIcon + ');-webkit-mask-repeat: no-repeat;-webkit-box-align: center; width: 20px; height: 20px; float: right; margin-right: 10px;'
-    translationButton.ariaPressed = 'false'
+    translationButton.style = 'background: rgba(112, 0, 255, 0.6); cursor:pointer; border: none; padding: 0; -webkit-mask-image: url(' + translationIcon + ');-webkit-mask-repeat: no-repeat;-webkit-box-align: center; width: 24px; height: 20px; float: right; margin-right: 5px;'
 
     const clearPopupButton = document.createElement('button')
-    const svg = '<svg width="16" height="16" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 1L1 13M1 1L13 13" stroke="#0E0021" stroke-opacity="0.2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    const svg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M18 6L6 18M6 6L18 18" stroke="#7000FF" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> </svg>'
     const icon = 'data:image/svg+xml;base64,' + window.btoa(svg)
-    clearPopupButton.style = 'background: #7000FF; border: none; cursor: pointer; padding: 0; -webkit-mask-image: url(' + icon + ');-webkit-mask-repeat: no-repeat;-webkit-box-align: center; width: 16px; height: 16px; float: right;'
+    clearPopupButton.style = 'background: #7000FF; border: none; cursor: pointer; padding: 0; -webkit-mask-image: url(' + icon + ');-webkit-mask-repeat: no-repeat;-webkit-box-align: center; width: 24px; height: 24px; float: right;'
 
     clearPopupButton.addEventListener('mouseover', function () {
       clearPopupButton.style.background = 'rgba(112, 0, 255)'
@@ -322,23 +406,21 @@
       }
     })
 
-    translationButton.addEventListener('mouseover', function () {
+    translateDiv.addEventListener('mouseover', function () {
       translationButton.style.background = 'rgba(112, 0, 255)'
+      translateSpan.style.color = 'rgba(112, 0, 255)'
     })
 
-    translationButton.addEventListener('mouseout', function () {
+    translateDiv.addEventListener('mouseout', function () {
       translationButton.style.background = 'rgba(112, 0, 255, 0.6)'
+      translateSpan.style.color = 'rgba(112, 0, 255, 0.6)'
     })
 
-    translationButton.addEventListener('click', function () {
-      if (translationButton.ariaPressed === 'false') {
-        translationButton.ariaPressed = 'true'
+    translateDiv.addEventListener('click', function () {
+      if (translateDiv.ariaPressed === 'false') {
+        translateDiv.ariaPressed = 'true'
         translationButton.style.background = 'rgba(112, 0, 255)'
-        const translateSpan = document.createElement('span')
-        translateSpan.id = 'wordbook-translate-word-span'
-        translateSpan.innerText = 'Translate'
-        translateSpan.style = 'font-style: normal; font-weight: 400; font-size: 16px; line-height: 24px; color: #0E0021; mix-blend-mode: normal; flex: none; order: 0; flex-grow: 0; float: right; margin-right: 5px'
-        wordName.appendChild(translateSpan)
+        translateSpan.style.color = 'rgba(112, 0, 255)'
 
         const wordDefinitionContainer = document.getElementById('word-definition-container')
         if (wordDefinitionContainer) {
@@ -346,12 +428,9 @@
           CreateTranslationContainer(word)
         }
       } else {
-        translationButton.ariaPressed = 'false'
+        translateDiv.ariaPressed = 'false'
         translationButton.style.background = 'rgba(112, 0, 255, 0.6)'
-        const translateSpan = document.getElementById('wordbook-translate-word-span')
-        if (translateSpan) {
-          translateSpan.remove()
-        }
+        translateSpan.style.color = 'rgba(112, 0, 255, 0.6)'
 
         const translationContainer = document.getElementById('wordbook-translation-selector')
         if (translationContainer) {
@@ -363,7 +442,10 @@
     })
 
     wordName.appendChild(clearPopupButton)
-    wordName.appendChild(translationButton)
+
+    translateDiv.appendChild(translateSpan)
+    translateDiv.appendChild(translationButton)
+    wordName.appendChild(translateDiv)
 
     CreateWordDefinition(status, definition)
 
@@ -443,13 +525,15 @@
       })
 
       language.addEventListener('click', async function (e) {
+        const translationDiv = document.getElementById('wordbook-translate-container')
+        translationDiv.ariaPressed = 'false'
+
+        translationDiv.style.pointerEvents = 'none'
+
         const translationButton = document.getElementById('wordbook-translation-button')
-        translationButton.ariaPressed = 'false'
         translationButton.style.background = 'rgba(112, 0, 255, 0.6)'
         const translateSpan = document.getElementById('wordbook-translate-word-span')
-        if (translateSpan) {
-          translateSpan.remove()
-        }
+        translateSpan.style.color = 'rgba(112, 0, 255, 0.6)'
 
         const translationContainer = document.getElementById('wordbook-translation-selector')
         if (translationContainer) {
@@ -473,6 +557,8 @@
         } else {
           CreateTranslationBox(`${language.innerText} translation`, 'Sorry! Couldn\'t get the translation.')
         }
+
+        translationDiv.style.pointerEvents = 'all'
       })
 
       translationContainer.appendChild(language)
@@ -933,8 +1019,44 @@
         }
         )
       }
+    } else {
+      return null
     }
 
     return dict
+  }
+
+  const GetTranscriptAsPlainText = async (videoId) => {
+    const url = `${WORDBOOK_API_URL}/api/v1/transcript-text/${videoId}`
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.status >= 200 && response.status < 210) {
+        const data = await response.text()
+
+        if (data) {
+          return {
+            status: 'success',
+            data
+          }
+        }
+      }
+
+      return {
+        status: 'failure',
+        message: 'Can\'t get transcript text.'
+      }
+    } catch (e) {
+      return {
+        status: 'failure',
+        message: 'Can\'t get transcript text.'
+      }
+    }
   }
 })()
