@@ -9,7 +9,10 @@
     "@mui/material": "^5.10.14",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "^5.0.1"
+    "react-router-dom": "^6.9.0",
+    "react-scripts": "^5.0.1",
+    "webpack": "^5.76.2",
+    "webpack-cli": "^5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -1,13 +1,37 @@
 import { Button, Icon, Link, Typography } from '@mui/material'
-import React from 'react'
+import React, { useEffect } from 'react'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import LogInSvg from '../../assets/log-in.svg'
+import { useAuthentication } from '../../context/use-auth'
 
 const SignInButton = () => {
+  const { signInGoogle, ping } = useAuthentication()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    if (searchParams.has('accessToken') && searchParams.has('tokenType') && searchParams.get('tokenType') === 'Bearer') {
+      (async () => {
+        const searchParamsObj = searchParams
+
+        const token = searchParamsObj.get('accessToken')
+        const userName = searchParamsObj.get('userName')
+
+        const response = await ping(token)
+
+        if (response.status === 'ok') {
+          signInGoogle(token, userName)
+        }
+      })()
+    }
+  },
+  [searchParams])
+
   return (
     <Button
     variant="contained"
     target='_blank'
-    href='https://wordbook.pro/oauth2/authorization/google'
+    href={`https://wordbook.pro/oauth2/authorization/google?redirect_uri=${location.pathname}`}
     component={Link}
     sx={{
       backgroundColor: '#7000FF',

@@ -5,8 +5,10 @@ import WordsContainerButton from './buttons/word-container-button'
 import WordbookPro from './header/wordbook-pro'
 import SignInButton from './buttons/sign-in-button'
 import Search from './word/search'
+import { useAuthentication } from '../context/use-auth'
 
 const Main = () => {
+  const { isAuthenticated } = useAuthentication()
   const [showHistory, setShowHistory] = useState(false)
 
   const openHistory = () => {
@@ -39,6 +41,10 @@ const Main = () => {
         expand={openHistory}
         iconSvg={HistorySvg} />
       {showHistory && <Search />}
+      {isAuthenticated && <WordsContainerButton
+        name='Dictionary'
+        expand={openHistory}
+        iconSvg={HistorySvg} />}
     </Container>
   )
 }
