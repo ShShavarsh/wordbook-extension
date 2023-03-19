@@ -9,16 +9,15 @@
     },
     "permissions": ["activeTab", "storage" , "scripting", "tabs", "tabGroups", "webNavigation"],
     "action": {
-        "default_popup": "index.html",
+        "default_popup": "popup.html",
         "default_title": "Wordbook",
         "default_icon": {
-          "192": "./assets/icons/wordbook-logo.png"
+          "192": "wordbook-logo.png"
         }
     },
     "content_scripts": [
         {
             "matches": ["https://*.youtube.com/*"],
-            "css": [ "loading-spinner.css" ],
             "all_frames": true,
             "js": ["content-script.js"]
         }
@@ -30,7 +29,7 @@
       }
     ],
     "icons": {
-      "16": "./assets/icons/wordbook-logo.png",
-      "192": "./assets/icons/wordbook-logo.png"
+      "16": "wordbook-logo.png",
+      "192": "wordbook-logo.png"
     } 
   }
