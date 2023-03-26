@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 chrome.tabs.onUpdated.addListener((tabId, tab, changeInfo) => {
   if (changeInfo.status === 'complete' && changeInfo.url && changeInfo.url.includes('youtube.com/watch')) {
     const queryParameters = changeInfo.url.split('?')[1]

@@ -3,13 +3,10 @@ const CopyPlugin = require('copy-webpack-plugin')
 const HtmlPlugin = require('html-webpack-plugin')
 
 module.exports = {
-  devServer: {
-    port: 3010,
-    watchContentBase: true
-  },
   entry: {
-    index: path.resolve('./src/index.js')
-
+    popup: path.resolve('./src/popup.js'),
+    background: path.resolve('./src/extension-core/background/background.js'),
+    'content-script': path.resolve('./src/extension-core/scripts/index.js')
   },
   module: {
     rules: [
@@ -26,16 +23,22 @@ module.exports = {
         }
       },
       {
-        test: /\.css$/,
+        test: /\.css$/i,
         use: [
           'style-loader',
-          'css-loader',
-          'sass-loader'
+          'css-loader'
         ]
       },
       {
         test: /\.svg$/,
-        loader: 'svg-inline-loader'
+        use: [
+          {
+            loader: 'svg-url-loader',
+            options: {
+              limit: 10000
+            }
+          }
+        ]
       }
     ]
   },
@@ -46,27 +49,11 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         {
-          from: path.resolve('src/content/manifest.json'),
-          to: path.resolve('dist')
-        },
-        // {
-        //   from: path.resolve('src/content/index.html'),
-        //   to: path.resolve('dist')
-        // },
-        {
-          from: path.resolve('src/content/index.css'),
+          from: path.resolve('src/extension-core/manifest.json'),
           to: path.resolve('dist')
         },
         {
-          from: path.resolve('src/content/scripts/content-script.js'),
-          to: path.resolve('dist')
-        },
-        {
-          from: path.resolve('src/content/scripts/background.js'),
-          to: path.resolve('dist')
-        },
-        {
-          from: path.resolve('src/content/styles/loading-spinner.css'),
+          from: path.resolve('src/extension-core/styles/loading-spinner.css'),
           to: path.resolve('dist')
         },
         {
@@ -87,5 +74,12 @@ module.exports = {
   output: {
     path: path.join(__dirname, '/dist'),
     filename: '[name].js'
+  },
+  optimization: {
+    splitChunks: {
+      chunks (chunk) {
+        return chunk.name !== 'content-script'
+      }
+    }
   }
 }
