@@ -1,27 +1,31 @@
-import React from 'react'
-import './content-script.js'
-import useScript from './use-script'
+import React, { useEffect } from 'react'
+// import './content-script.js'
+// import useScript from './use-script'
 
 const ContentScript = () => {
-  useScript('./content-script.js')
+  // useScript('./content-script.js')
 
-  let tabID
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.src = 'test.js'
+    script.async = true
+    document.body.appendChild(script)
+  }
+  , [])
 
-  chrome.runtime.onMessage.addListener(async (obj, sender, response) => {
-    const { type, videoId, tabId } = obj
-
-    tabID = tabId
+  chrome.runtime.onMessage.addListener(async (obj) => {
+    const { type, tabId, videoId } = obj
 
     console.log('type', type)
     console.log('videoId', videoId)
     console.log('tabId', tabId)
-  })
 
-  // chrome.scripting.executeScript.executeScript({
-  //   target: { tabID },
-  //   files: ['script.js']
-  // })
-  //   .then(() => console.log('script injected'))
+    // chrome.scripting.executeScript({
+    //   target: { tabId },
+    //   func: getTitle
+    // })
+    //   .then(() => console.log('script injected'))
+  })
 
   return (
     <div>aaaaaaaaaaa</div>

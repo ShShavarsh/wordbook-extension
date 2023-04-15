@@ -31,9 +31,5 @@
     "icons": {
       "16": "wordbook-logo.png",
       "192": "wordbook-logo.png"
-    },
-    "content_security_policy": {
-      "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; default-src 'self'; object-src 'self';",
-      "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self';"
     }
   }
