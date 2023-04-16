@@ -1,17 +1,10 @@
-import React, { useEffect } from 'react'
+import React from 'react'
+import { InitializeWordbook, InitializeDownloadTranscriptButton } from './init-buttons'
 // import './content-script.js'
 // import useScript from './use-script'
 
 const ContentScript = () => {
   // useScript('./content-script.js')
-
-  useEffect(() => {
-    const script = document.createElement('script')
-    script.src = 'test.js'
-    script.async = true
-    document.body.appendChild(script)
-  }
-  , [])
 
   chrome.runtime.onMessage.addListener(async (obj) => {
     const { type, tabId, videoId } = obj
@@ -19,6 +12,9 @@ const ContentScript = () => {
     console.log('type', type)
     console.log('videoId', videoId)
     console.log('tabId', tabId)
+
+    InitializeWordbook()
+    InitializeDownloadTranscriptButton()
 
     // chrome.scripting.executeScript({
     //   target: { tabId },
