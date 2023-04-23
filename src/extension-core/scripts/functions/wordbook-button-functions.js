@@ -1,4 +1,4 @@
-import { GetTranscriptAsPlainText } from './api-calls'
+import { GetTranscriptAsPlainText } from './api-call-functions'
 
 export const InitializeWordbook = (status) => {
   if (document.getElementById('wordbook-button') === null) {

@@ -209,23 +209,6 @@
     return wordbookDownloadTranscriptButton
   }
 
-  // const TransformCaptions = () => {
-  //   const captionSegments = document.getElementsByClassName('ytp-caption-segment')
-  //   if (captionSegments) {
-  //     for (i = 0; i < captionSegments.length; i++) {
-  //       const words = captionSegments[i].innerText.split(' ')
-
-  //       const captionParentNode = captionSegments[i].parentNode
-  //       captionParentNode.removeChild(captionSegments[i])
-
-  //       for (j = 0; j < words.length; j++) {
-  //         const wordButton = CreateWordButton(words[j])
-  //         captionParentNode.appendChild(wordButton)
-  //       }
-  //     }
-  //   }
-  // }
-
   const CreateCaptionText = () => {
     const captionWindowContainer = document.getElementsByClassName('ytp-caption-window-container')[0]
 

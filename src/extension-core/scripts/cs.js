@@ -1,30 +1,151 @@
-import React from 'react'
-import { InitializeWordbook, InitializeDownloadTranscriptButton } from './init-buttons'
-// import './content-script.js'
-// import useScript from './use-script'
+import React, { useState } from 'react'
+import { InitializeWordbook, InitializeDownloadTranscriptButton } from './functions/wordbook-button-functions'
+import { GetPlayedSeconds, CreateCaptionText } from './functions/caption-functions'
+import { GetTranscript, GetDefinition, GetOxfordDefinition } from './functions/api-call-functions'
+import { UpdateCaptionProps } from './functions/update-functions'
+import { CreateWordButton, ValidateWord, CreateDefinitionPopup } from './functions/word-functions'
+import { SetScrollbarCss } from './functions/css-setup'
 
 const ContentScript = () => {
-  // useScript('./content-script.js')
+  const [lastVideoId, setLastVideoId] = useState('')
+  const [, setCurrentVideoId] = useState('')
+
+  const [, setTranscript] = useState('')
+  const [, setSubtitle] = useState('')
+
+  const initExtension = async (type, videoId) => {
+    setCurrentVideoId(videoId)
+
+    if (type === 'NEW') {
+      if (lastVideoId === '' || lastVideoId !== videoId) {
+        setLastVideoId(videoId)
+        const popupWindow = document.getElementById('wordbook-definition-popup')
+        if (popupWindow) {
+          popupWindow.remove()
+        }
+      }
+    }
+
+    const transcript = await GetTranscript(videoId)
+
+    setTranscript(transcript)
+
+    if (transcript) {
+      InitializeWordbook('available')
+      InitializeDownloadTranscriptButton('available', videoId)
+    } else {
+      InitializeWordbook('unavailable')
+      InitializeDownloadTranscriptButton('unavailable', videoId)
+    }
+
+    SetScrollbarCss()
+
+    if (document.getElementById('caption-window-wordbook') === null) {
+      CreateCaptionText()
+    }
+
+    if (transcript !== null) {
+      InitSubtitle(transcript)
+    }
+  }
+
+  const InitSubtitle = (transcript) => {
+    const currentTime = GetPlayedSeconds()
+
+    let index = Math.floor(currentTime / 5)
+
+    setInterval(() => {
+      const currentTime = GetPlayedSeconds()
+
+      const currentIndex = Math.floor(currentTime / 5)
+
+      if (currentIndex !== index) {
+        if (transcript[currentIndex] && transcript[currentIndex].start && currentTime >= transcript[currentIndex].start) {
+          index = currentIndex
+          setSubtitle(transcript[currentIndex].text)
+          SetCurrentSubtitle(transcript[currentIndex].text)
+        }
+      }
+    }, 100)
+  }
+
+  const SetCurrentSubtitle = (captionSegment) => {
+    const captionTexts = document.getElementsByClassName('captions-text')
+    let captionText
+    if (captionTexts && captionTexts[0]) {
+      captionText = captionTexts[0]
+    }
+
+    for (let j = captionText.children.length - 1; j >= 0; j--) {
+      captionText.removeChild(captionText.children[j])
+    }
+
+    const words = captionSegment.split(' ')
+
+    for (let i = 0; i < words.length; i++) {
+      const wordButton = CreateWordButton(words[i])
+      ApplyEventsToWordButton(wordButton)
+      captionText.appendChild(wordButton)
+    }
+
+    UpdateCaptionProps()
+  }
+
+  const ApplyEventsToWordButton = async (wordButton) => {
+    wordButton.addEventListener('mouseover', function () {
+      wordButton.style.fontWeight = 'bold'
+    })
+    wordButton.addEventListener('mouseout', function () {
+      wordButton.style.fontWeight = 'normal'
+    })
+
+    wordButton.addEventListener('click', async function () {
+      const playButton = document.getElementsByClassName('ytp-play-button')[0]
+      if (playButton.dataset.titleNoTooltip === 'Pause') {
+        playButton.click()
+      }
+
+      const validWord = ValidateWord(wordButton.innerText)
+      let definitionStatus = ''
+      let definition
+
+      let lastDefinition
+
+      if (validWord !== '') {
+        const response = await GetDefinition(validWord)
+
+        lastDefinition = response
+
+        if (response.status === 'failure') {
+          const oxfordResponse = await GetOxfordDefinition(validWord)
+
+          lastDefinition = oxfordResponse
+
+          definitionStatus = oxfordResponse.status
+          definition = oxfordResponse.definition
+        } else {
+          definitionStatus = response.status
+          definition = response.definition
+        }
+      }
+
+      const popupWindow = document.getElementById('wordbook-definition-popup')
+      if (popupWindow) {
+        popupWindow.remove()
+        CreateDefinitionPopup(validWord, definitionStatus, definition, lastDefinition)
+      } else {
+        CreateDefinitionPopup(validWord, definitionStatus, definition, lastDefinition)
+      }
+    })
+  }
 
   chrome.runtime.onMessage.addListener(async (obj) => {
-    const { type, tabId, videoId } = obj
-
-    console.log('type', type)
-    console.log('videoId', videoId)
-    console.log('tabId', tabId)
-
-    InitializeWordbook()
-    InitializeDownloadTranscriptButton()
-
-    // chrome.scripting.executeScript({
-    //   target: { tabId },
-    //   func: getTitle
-    // })
-    //   .then(() => console.log('script injected'))
+    const { type, videoId } = obj
+    initExtension(type, videoId)
   })
 
   return (
-    <div>aaaaaaaaaaa</div>
+    <> </>
   )
 }
 
