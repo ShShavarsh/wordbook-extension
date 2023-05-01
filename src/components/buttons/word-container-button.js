@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import ChevronDown from '../../assets/chevron-down.svg'
 import ChevronUp from '../../assets/chevron-up.svg'
 
-const WordsContainerButton = ({ name, expand, iconSvg }) => {
+const WordsContainerButton = ({ name, expand, iconSvg, sx }) => {
   const [expanded, setExpanded] = useState(false)
 
   const open = () => {
@@ -15,13 +15,14 @@ const WordsContainerButton = ({ name, expand, iconSvg }) => {
     <Box sx={{
       display: 'inline-flex',
       alignItems: 'center',
-      marginLeft: '20px',
-      width: '187px',
-      height: '56px',
+      marginLeft: '18px',
+      width: '152px',
+      height: '48px',
       borderRadius: '12px',
       border: '3px solid rgb(245, 237, 255)',
       marginTop: '10px',
-      marginBottom: '10px'
+      marginBottom: '10px',
+      ...sx
     }}>
       <Box
       onClick={open}
@@ -29,18 +30,18 @@ const WordsContainerButton = ({ name, expand, iconSvg }) => {
         display: 'inline-flex',
         alignItems: 'center',
         width: '187px',
-        height: '56px',
+        height: '48px',
         borderRadius: '12px',
         marginTop: '10px',
         marginBottom: '10px',
         justifyContent: 'space-evenly',
         cursor: 'pointer',
         ...(expanded && {
-          backgroundColor: 'rgb(112, 0, 255, 0.2)',
+          backgroundColor: 'rgb(112, 0, 255, 0.08)',
           border: '1px solid rgba(112, 0, 255, 0.4)'
         }),
         '&:hover': {
-          backgroundColor: 'rgb(112, 0, 255, 0.2)',
+          backgroundColor: 'rgb(112, 0, 255, 0.08)',
           border: '1px solid rgba(112, 0, 255, 0.4)'
         }
       }}>
@@ -52,8 +53,8 @@ const WordsContainerButton = ({ name, expand, iconSvg }) => {
         </Icon>
         <Typography
           sx={{
-            fontFamily: 'Poppins',
             fontSize: '16px',
+            fontWeight: '500',
             boxShadow: 'none',
             textTransform: 'capitalize'
           }}>

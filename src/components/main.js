@@ -5,15 +5,26 @@ import WordsContainerButton from './buttons/word-container-button'
 import WordbookPro from './header/wordbook-pro'
 import SignInButton from './buttons/sign-in-button'
 import Search from './word/search'
-import { useAuthentication } from '../context/use-auth'
+import { useAuthentication } from '../context/auth/use-auth'
+import Words from './word/words'
 
 const Main = () => {
   const { isAuthenticated } = useAuthentication()
   const [showHistory, setShowHistory] = useState(false)
+  const [showDictionary, setShowDictionary] = useState(false)
+
+  const [searchPattern, setSearchPattern] = useState('')
 
   const openHistory = () => {
     setShowHistory(prev => !prev)
-    console.log('show history')
+  }
+
+  const openDictionary = () => {
+    setShowDictionary(prev => !prev)
+  }
+
+  const SetSearchPattern = (val) => {
+    setSearchPattern(val)
   }
 
   chrome.runtime.onMessage.addListener(
@@ -25,35 +36,52 @@ const Main = () => {
     }
   )
 
+  const dummyWords = ['hey', 'what', 'love', 'support', 'problematic', 'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy',
+    'terrible', 'plural', 'math', 'query', 'venom', 'machine', 'jupiter', 'lemon']
+
   return (
     <Container
     sx={{
-      padding: '5px',
       border: '3px',
       borderRadius: '5px',
       borderColor: '#F5EDFF',
-      borderStyle: 'solid'
+      borderStyle: 'solid',
+      padding: 0
     }}>
       <Box
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
         width: 'inherit',
-        marginLeft: '20px',
-        marginTop: '7px'
+        paddingLeft: '15px',
+        marginTop: '10px'
       }}>
         <WordbookPro />
         <SignInButton />
       </Box>
+      <Box sx={{
+        display: 'block',
+        background: 'rgba(112, 0, 255, 0.02)',
+        width: 'inherit',
+        marginTop: '12px'
+      }}>
+      {isAuthenticated && <WordsContainerButton
+        name='Dictionary'
+        expand={openDictionary}
+        iconSvg={HistorySvg}
+        sx={{
+          width: '172px'
+        }}/>}
       <WordsContainerButton
         name='History'
         expand={openHistory}
-        iconSvg={HistorySvg} />
-      {showHistory && <Search />}
-      {isAuthenticated && <WordsContainerButton
-        name='Dictionary'
-        expand={openHistory}
-        iconSvg={HistorySvg} />}
+        iconSvg={HistorySvg}
+        sx={{
+          width: '148px'
+        }}/>
+      {(showHistory || showDictionary) && <Search setPattern={SetSearchPattern}/>}
+      {(showHistory || showDictionary) && <Words words={dummyWords} searchPattern={searchPattern}/>}
+      </Box>
     </Container>
   )
 }

@@ -43,7 +43,8 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: ['.js']
+    extensions: ['.js'],
+    fallback: { crypto: false, path: false }
   },
   plugins: [
     new CopyPlugin({
@@ -81,5 +82,6 @@ module.exports = {
         return chunk.name !== 'content-script'
       }
     }
-  }
+  },
+  watch: true
 }

@@ -2,7 +2,7 @@ import { Button, Icon, Link, Typography } from '@mui/material'
 import React, { useEffect } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import LogInSvg from '../../assets/log-in.svg'
-import { useAuthentication } from '../../context/use-auth'
+import { useAuthentication } from '../../context/auth/use-auth'
 
 const SignInButton = () => {
   const { signInGoogle, ping } = useAuthentication()
@@ -35,9 +35,9 @@ const SignInButton = () => {
     component={Link}
     sx={{
       backgroundColor: '#7000FF',
+      height: '34px',
       borderRadius: '8px',
       marginLeft: '95px',
-      height: '38px',
       alignItems: 'center',
       ':hover': {
         backgroundColor: '#7000FF'

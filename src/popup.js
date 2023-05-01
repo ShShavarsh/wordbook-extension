@@ -2,7 +2,8 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import Main from './components/main'
-import { AuthProvider } from './context/auth-provider'
+import { AuthProvider } from './context/auth/auth-provider'
+import { WordProvider } from './context/word/word-provider'
 import './popup.css'
 
 const container = document.createElement('div')
@@ -12,7 +13,9 @@ const root = createRoot(container)
 const Popup = (
     <BrowserRouter>
         <AuthProvider>
-            <Main />
+            <WordProvider>
+                <Main />
+            </WordProvider>
         </AuthProvider>
     </BrowserRouter>
 )

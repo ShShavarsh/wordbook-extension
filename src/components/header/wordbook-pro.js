@@ -26,7 +26,7 @@ const WordbookPro = () => {
         boxShadow: 'none',
         color: 'black',
         cursor: 'pointer',
-        width: '187px'
+        width: '90px'
       }}>
         wordbook.pro
       </Typography>

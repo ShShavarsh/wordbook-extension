@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect } from 'react'
 import { InitializeWordbook, InitializeDownloadTranscriptButton } from './functions/wordbook-button-functions'
 import { GetPlayedSeconds, CreateCaptionText } from './functions/caption-functions'
 import { GetTranscript, GetDefinition, GetOxfordDefinition } from './functions/api-call-functions'
@@ -7,48 +7,6 @@ import { CreateWordButton, ValidateWord, CreateDefinitionPopup } from './functio
 import { SetScrollbarCss } from './functions/css-setup'
 
 const ContentScript = () => {
-  const [lastVideoId, setLastVideoId] = useState('')
-  const [, setCurrentVideoId] = useState('')
-
-  const [, setTranscript] = useState('')
-  const [, setSubtitle] = useState('')
-
-  const initExtension = async (type, videoId) => {
-    setCurrentVideoId(videoId)
-
-    if (type === 'NEW') {
-      if (lastVideoId === '' || lastVideoId !== videoId) {
-        setLastVideoId(videoId)
-        const popupWindow = document.getElementById('wordbook-definition-popup')
-        if (popupWindow) {
-          popupWindow.remove()
-        }
-      }
-    }
-
-    const transcript = await GetTranscript(videoId)
-
-    setTranscript(transcript)
-
-    if (transcript) {
-      InitializeWordbook('available')
-      InitializeDownloadTranscriptButton('available', videoId)
-    } else {
-      InitializeWordbook('unavailable')
-      InitializeDownloadTranscriptButton('unavailable', videoId)
-    }
-
-    SetScrollbarCss()
-
-    if (document.getElementById('caption-window-wordbook') === null) {
-      CreateCaptionText()
-    }
-
-    if (transcript !== null) {
-      InitSubtitle(transcript)
-    }
-  }
-
   const InitSubtitle = (transcript) => {
     const currentTime = GetPlayedSeconds()
 
@@ -62,7 +20,6 @@ const ContentScript = () => {
       if (currentIndex !== index) {
         if (transcript[currentIndex] && transcript[currentIndex].start && currentTime >= transcript[currentIndex].start) {
           index = currentIndex
-          setSubtitle(transcript[currentIndex].text)
           SetCurrentSubtitle(transcript[currentIndex].text)
         }
       }
@@ -139,10 +96,39 @@ const ContentScript = () => {
     })
   }
 
-  chrome.runtime.onMessage.addListener(async (obj) => {
-    const { type, videoId } = obj
-    initExtension(type, videoId)
-  })
+  useEffect(async () => {
+    chrome.runtime.onMessage.addListener(async (obj) => {
+      const { type, videoId } = obj
+
+      if (type === 'NEW') {
+        const popupWindow = document.getElementById('wordbook-definition-popup')
+        if (popupWindow) {
+          popupWindow.remove()
+        }
+      }
+
+      const transcript = await GetTranscript(videoId)
+
+      console.log('aaaa')
+      if (transcript) {
+        InitializeWordbook('available')
+        InitializeDownloadTranscriptButton('available', videoId)
+      } else {
+        InitializeWordbook('unavailable')
+        InitializeDownloadTranscriptButton('unavailable', videoId)
+      }
+
+      SetScrollbarCss()
+
+      if (document.getElementById('caption-window-wordbook') === null) {
+        CreateCaptionText()
+      }
+
+      if (transcript !== null) {
+        InitSubtitle(transcript)
+      }
+    })
+  }, [])
 
   return (
     <> </>
@@ -150,5 +136,3 @@ const ContentScript = () => {
 }
 
 export default ContentScript
-
-// <script src="./content-script.js" type="text/javascript" />

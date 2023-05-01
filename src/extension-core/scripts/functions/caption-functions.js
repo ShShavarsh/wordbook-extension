@@ -72,6 +72,5 @@ const SetCurrentSubtitle = (captionSegment) => {
 
 export const GetPlayedSeconds = () => {
   const youtubePlayer = document.querySelector('video')
-
   return youtubePlayer.currentTime
 }
