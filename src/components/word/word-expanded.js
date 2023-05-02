@@ -1,7 +1,7 @@
 import { Box, Button, Icon, Typography } from '@mui/material'
 import React from 'react'
 import AddToDictionary from '../../assets/add-to-dictionary.svg'
-import ChevronUp from '../../assets/chevron-up.svg'
+import ChevronDown from '../../assets/chevron-down.svg'
 
 const WordExpanded = ({ name, definition, key, collapseWord }) => {
   const Collapse = () => {
@@ -72,7 +72,7 @@ const WordExpanded = ({ name, definition, key, collapseWord }) => {
                     sx={{
                       marginRight: '5px'
                     }}>
-                        <img src={ChevronUp}/>
+                        <img src={ChevronDown}/>
                     </Icon>
             </Button>
         </Box>

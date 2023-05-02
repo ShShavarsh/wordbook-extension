@@ -1,7 +1,7 @@
 import { Box, Button, Icon, Typography } from '@mui/material'
 import React from 'react'
 import AddToDictionary from '../../assets/add-to-dictionary.svg'
-import ChevronDown from '../../assets/chevron-down.svg'
+import ChevronUp from '../../assets/chevron-up.svg'
 
 const Word = ({ name, key, expandWord }) => {
   const Expand = () => {
@@ -74,7 +74,7 @@ const Word = ({ name, key, expandWord }) => {
                     sx={{
                       marginRight: '5px'
                     }}>
-                        <img src={ChevronDown}/>
+                        <img src={ChevronUp}/>
                     </Icon>
             </Button>
         </Box>

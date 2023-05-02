@@ -2,7 +2,7 @@ import { Box, Icon, InputAdornment, TextField } from '@mui/material'
 import React from 'react'
 import SearchSvg from '../../assets/Search.svg'
 
-const Search = ({ setPattern }) => {
+const Search = ({ setPattern, section }) => {
   const SetPattern = (e) => {
     setPattern(e.target.value)
   }
@@ -12,26 +12,23 @@ const Search = ({ setPattern }) => {
       display: 'grid',
       marginLeft: '20px',
       marginRight: '20px',
-      height: '48px',
+      height: '32px',
       '& .MuiOutlinedInput-root': {
-        height: '48px'
+        height: '32px'
       }
     }}>
         <TextField
-        placeholder='Search words in history'
+        placeholder={`Search in the ${section}`}
         onChange={SetPattern}
-        inputProp={{
-          style: {
-            height: '48px',
-            border: 'none'
-          }
-        }}
         InputProps={{
           startAdornment: (
               <InputAdornment position="start">
                 <Icon
                 sx={{
-                  marginRight: '10px'
+                  height: '18px',
+                  marginBottom: '5px',
+                  marginRight: '10px',
+                  '& img': { height: '18px', marginBottom: '5px' }
                 }}>
                     <img src={SearchSvg}/>
                 </Icon>
@@ -40,16 +37,22 @@ const Search = ({ setPattern }) => {
         }}
         sx={{
           boxSizing: 'border-box',
-          backgroundColor: 'rgb(112, 0, 255, 0.04)',
-          borderRadius: '8px',
           '& .MuiOutlinedInput-root': {
-            border: '1px solid rgba(112, 0, 255, 0.4)',
-            borderRadius: '8px',
+            borderBottom: '1px solid rgba(112, 0, 255, 0.4)',
             '&:hover fieldset': {
-              border: '1px solid rgba(112, 0, 255, 0.4)'
+              borderBottom: '1px solid rgba(112, 0, 255, 0.4)'
             }
           },
-          '& fieldset': { border: 'none' }
+          '& .MuiInputAdornment-root': {
+            marginRight: 0
+          },
+          '& fieldset': { border: 'none' },
+          '& input::placeholder': {
+            fontSize: '12px'
+          },
+          '& input': {
+            marginBottom: '5px'
+          }
         }}>
 
         </TextField>

@@ -17,8 +17,8 @@ const WordsContainerButton = ({ name, expand, iconSvg, sx }) => {
       alignItems: 'center',
       marginLeft: '18px',
       width: '152px',
-      height: '48px',
-      borderRadius: '12px',
+      height: '40px',
+      borderRadius: '8px',
       border: '3px solid rgb(245, 237, 255)',
       marginTop: '10px',
       marginBottom: '10px',
@@ -30,8 +30,8 @@ const WordsContainerButton = ({ name, expand, iconSvg, sx }) => {
         display: 'inline-flex',
         alignItems: 'center',
         width: '187px',
-        height: '48px',
-        borderRadius: '12px',
+        height: '40px',
+        borderRadius: '8px',
         marginTop: '10px',
         marginBottom: '10px',
         justifyContent: 'space-evenly',
@@ -43,7 +43,8 @@ const WordsContainerButton = ({ name, expand, iconSvg, sx }) => {
         '&:hover': {
           backgroundColor: 'rgb(112, 0, 255, 0.08)',
           border: '1px solid rgba(112, 0, 255, 0.4)'
-        }
+        },
+        ...sx
       }}>
         <Icon
         sx={{
@@ -65,7 +66,7 @@ const WordsContainerButton = ({ name, expand, iconSvg, sx }) => {
           marginRight: '10px',
           height: '32px'
         }}>
-          <img src={expanded ? ChevronUp : ChevronDown}/>
+          <img src={expanded ? ChevronDown : ChevronUp}/>
         </Icon>
       </Box>
     </Box>

@@ -17,10 +17,12 @@ const Main = () => {
 
   const openHistory = () => {
     setShowHistory(prev => !prev)
+    setShowDictionary(prev => !prev)
   }
 
   const openDictionary = () => {
     setShowDictionary(prev => !prev)
+    setShowHistory(prev => !prev)
   }
 
   const SetSearchPattern = (val) => {
@@ -63,7 +65,8 @@ const Main = () => {
         display: 'block',
         background: 'rgba(112, 0, 255, 0.02)',
         width: 'inherit',
-        marginTop: '12px'
+        marginTop: '12px',
+        marginBottom: '12px'
       }}>
       {isAuthenticated && <WordsContainerButton
         name='Dictionary'
@@ -79,7 +82,7 @@ const Main = () => {
         sx={{
           width: '148px'
         }}/>
-      {(showHistory || showDictionary) && <Search setPattern={SetSearchPattern}/>}
+      {(showHistory || showDictionary) && <Search setPattern={SetSearchPattern} section={showHistory ? 'history' : 'dictionary'} />}
       {(showHistory || showDictionary) && <Words words={dummyWords} searchPattern={searchPattern}/>}
       </Box>
     </Container>
