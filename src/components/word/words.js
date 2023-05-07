@@ -28,17 +28,20 @@ const Words = ({ words, searchPattern }) => {
     <Box sx={{
       overflowY: 'scroll',
       overflowX: 'hidden',
-      height: '375px',
+      height: '360px',
       marginTop: '15px',
       display: 'flow-root',
       width: '100%',
       '&::-webkit-scrollbar': {
         width: '7px !important',
-        borderRadius: '10px!important',
-        height: '5px'
+        height: '5px',
+        background: 'rgba(112, 0, 255, 0.04)',
+        border: '1px solid rgba(112, 0, 255, 0.12)',
+        borderRadius: '32px'
       },
       '&::-webkit-scrollbar-thumb': {
-        backgroundColor: 'rgba(112, 0, 255, 0.3)',
+        borderRadius: '32px',
+        backgroundColor: 'rgba(112, 0, 255, 0.12)',
         cursor: 'pointer'
       }
     }}>

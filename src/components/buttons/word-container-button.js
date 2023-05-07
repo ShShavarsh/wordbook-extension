@@ -1,13 +1,10 @@
 import { Box, Icon, Typography } from '@mui/material'
-import React, { useState } from 'react'
+import React from 'react'
 import ChevronDown from '../../assets/chevron-down.svg'
 import ChevronUp from '../../assets/chevron-up.svg'
 
-const WordsContainerButton = ({ name, expand, iconSvg, sx }) => {
-  const [expanded, setExpanded] = useState(false)
-
+const WordsContainerButton = ({ name, expand, expanded, iconSvg, sx }) => {
   const open = () => {
-    setExpanded(prev => !prev)
     expand()
   }
 
@@ -54,7 +51,7 @@ const WordsContainerButton = ({ name, expand, iconSvg, sx }) => {
         </Icon>
         <Typography
           sx={{
-            fontSize: '16px',
+            fontSize: '13px',
             fontWeight: '500',
             boxShadow: 'none',
             textTransform: 'capitalize'
@@ -64,7 +61,8 @@ const WordsContainerButton = ({ name, expand, iconSvg, sx }) => {
         <Icon
         sx={{
           marginRight: '10px',
-          height: '32px'
+          height: '32px',
+          display: 'contents'
         }}>
           <img src={expanded ? ChevronDown : ChevronUp}/>
         </Icon>

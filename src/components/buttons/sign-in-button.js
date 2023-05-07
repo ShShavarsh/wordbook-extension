@@ -1,7 +1,7 @@
 import { Button, Icon, Link, Typography } from '@mui/material'
 import React, { useEffect } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
-import LogInSvg from '../../assets/log-in.svg'
+import GoogleSignIn from '../../assets/google-sign-in.svg'
 import { useAuthentication } from '../../context/auth/use-auth'
 
 const SignInButton = () => {
@@ -29,18 +29,15 @@ const SignInButton = () => {
 
   return (
     <Button
-    variant="contained"
     target='_blank'
     href={`https://wordbook.pro/oauth2/authorization/google?redirect_uri=${location.pathname}`}
     component={Link}
     sx={{
-      backgroundColor: '#7000FF',
       height: '34px',
-      borderRadius: '8px',
       marginLeft: '95px',
       alignItems: 'center',
       ':hover': {
-        backgroundColor: '#7000FF'
+        background: 'none'
       }
     }}>
   <Icon
@@ -48,15 +45,16 @@ const SignInButton = () => {
       marginRight: '10px',
       height: '32px'
     }}>
-      <img src={LogInSvg}/>
+      <img src={GoogleSignIn}/>
   </Icon>
   <Typography
     sx={{
-      fontFamily: 'Poppins',
-      fontSize: '16px',
+      fontWeight: '500',
+      fontSize: '13px',
+      lineHeight: '20px',
       boxShadow: 'none',
-      color: '#FFFFFF',
       cursor: 'pointer',
+      color: 'rgba(14,0,33,0.68)',
       textTransform: 'capitalize'
     }}>
       Sign In

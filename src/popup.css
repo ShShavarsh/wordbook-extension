@@ -2,4 +2,9 @@ body {
     width: 392px;
     height: auto;
     margin: 0;
+    max-height: 652px;
+}
+
+body::-webkit-scrollbar {
+    display: none !important
 }

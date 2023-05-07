@@ -3,6 +3,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const queryParameters = tab.url.split('?')[1]
     const urlParameters = new URLSearchParams(queryParameters)
 
+    chrome.storage.session.set({ words: [] })
+
     chrome.tabs.sendMessage(tabId, {
       type: 'NEW',
       tabId,
@@ -10,3 +12,5 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     })
   }
 })
+
+chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' })

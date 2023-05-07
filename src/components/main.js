@@ -7,39 +7,59 @@ import SignInButton from './buttons/sign-in-button'
 import Search from './word/search'
 import { useAuthentication } from '../context/auth/use-auth'
 import Words from './word/words'
+import SummaryForm from './buttons/summary-form'
+import SummaryFormExpanded from './buttons/summary-form-expanded'
 
 const Main = () => {
   const { isAuthenticated } = useAuthentication()
   const [showHistory, setShowHistory] = useState(false)
   const [showDictionary, setShowDictionary] = useState(false)
 
+  const [words, setWords] = useState([])
+
+  const [showSummary, setShowSummary] = useState(false)
+  const [summary, setSummary] = useState('')
+
   const [searchPattern, setSearchPattern] = useState('')
 
-  const openHistory = () => {
+  const openHistory = async () => {
     setShowHistory(prev => !prev)
     setShowDictionary(prev => !prev)
+    setShowSummary(false)
+
+    const history = await chrome.storage.session.get(['words'])
+    const historyArray = Object.keys(history).length > 0 ? history : []
+    if (historyArray.length === 0) {
+      setWords([])
+    } else {
+      const historyWords = JSON.parse(historyArray.words)
+      setWords(historyWords)
+    }
   }
 
   const openDictionary = () => {
     setShowDictionary(prev => !prev)
     setShowHistory(prev => !prev)
+    setShowSummary(false)
   }
 
   const SetSearchPattern = (val) => {
     setSearchPattern(val)
   }
 
-  chrome.runtime.onMessage.addListener(
-    function (request, sender, sendResponse) {
-      console.log(sender.tab
-        ? 'from a content script:' + sender.tab.url
-        : 'from the extension')
-      if (request.VideoId) { sendResponse({ farewell: 'goodbye' }) }
-    }
-  )
+  const ShowSummary = async () => {
+    setShowSummary(true)
+    setShowHistory(false)
+    setShowDictionary(false)
+  }
 
-  const dummyWords = ['hey', 'what', 'love', 'support', 'problematic', 'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy',
-    'terrible', 'plural', 'math', 'query', 'venom', 'machine', 'jupiter', 'lemon']
+  const HideSummary = () => {
+    setShowSummary(false)
+    setShowHistory(false)
+    setShowDictionary(false)
+  }
+
+  const dummySummary = "Well hello and welcome to this English lesson about nice once again welcome to this English lesson about nice gifts? No I'm not. What kind of nice things will I talk about? person in this English lesson. Well hello and welcome to this English lesson about nice once again welcome to this English lesson about nice gifts? No I'm not. What kind of nice things will I talk about? person in this English lesson. Well hello and welcome to this English lesson about nice once again welcome to this English lesson about nice gifts? No I'm not. What kind of nice things will I talk about?"
 
   return (
     <Container
@@ -68,8 +88,10 @@ const Main = () => {
         marginTop: '12px',
         marginBottom: '12px'
       }}>
+      { showSummary ? <SummaryFormExpanded collapse={HideSummary} summary={dummySummary} /> : <SummaryForm show={ShowSummary} /> }
       {isAuthenticated && <WordsContainerButton
         name='Dictionary'
+        expanded={showDictionary}
         expand={openDictionary}
         iconSvg={HistorySvg}
         sx={{
@@ -77,13 +99,14 @@ const Main = () => {
         }}/>}
       <WordsContainerButton
         name='History'
+        expanded={showHistory}
         expand={openHistory}
         iconSvg={HistorySvg}
         sx={{
           width: '148px'
         }}/>
       {(showHistory || showDictionary) && <Search setPattern={SetSearchPattern} section={showHistory ? 'history' : 'dictionary'} />}
-      {(showHistory || showDictionary) && <Words words={dummyWords} searchPattern={searchPattern}/>}
+      {(showHistory || showDictionary) && <Words words={words} searchPattern={searchPattern}/>}
       </Box>
     </Container>
   )

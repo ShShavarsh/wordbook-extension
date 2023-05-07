@@ -1,29 +1,27 @@
 import { Box, Button, Icon, Typography } from '@mui/material'
 import React from 'react'
-import AddToDictionary from '../../assets/add-to-dictionary.svg'
+import SummaryIcon from '../../assets/summary.svg'
 import ChevronUp from '../../assets/chevron-up.svg'
 
-const Word = ({ name, key, expandWord }) => {
+const SummaryForm = ({ show }) => {
   const Expand = () => {
-    expandWord(name)
+    show()
   }
 
   return (
     <Box sx={{
       display: 'table',
       marginLeft: '20px',
-      marginRight: '10px',
+      marginRight: '17px',
       marginTop: '5px',
-      height: '40px',
+      height: '48px',
       width: '-webkit-fill-available'
     }}>
-         <Box
-         key={key}
+        <Box
         sx={{
           boxSizing: 'border-box',
           borderRadius: '8px',
           maxWidth: 'inherit',
-          height: '40px',
           border: '4px solid rgba(112, 0, 255, 0.08)',
           display: 'flex',
           justifyContent: 'space-between',
@@ -33,27 +31,18 @@ const Word = ({ name, key, expandWord }) => {
           },
           '& fieldset': { border: 'none' }
         }}>
-            <Button
-                sx={{
-                  cursor: 'pointer',
-                  marginLeft: '10px',
-                  minWidth: 'auto',
-                  alignSelf: 'flex-start',
-                  '&:hover': {
-                    background: 'none'
-                  }
-                }}
-                >
-                    <Icon
-                    sx={{
-                      display: 'grid'
-                    }}>
-                        <img src={AddToDictionary}/>
-                    </Icon>
-            </Button>
+            <Icon
+            sx={{
+              display: 'grid',
+              alignSelf: 'flex-end',
+              marginLeft: '15px',
+              marginRight: '10px'
+            }}>
+                <img src={SummaryIcon}/>
+            </Icon>
             <Typography
             sx={{
-              fontWeight: '400',
+              fontWeight: '550',
               marginRight: 'auto',
               alignSelf: 'center',
               fontSize: '13px',
@@ -61,13 +50,15 @@ const Word = ({ name, key, expandWord }) => {
               overflow: 'hidden',
               textOverflow: 'ellipsis'
             }}>
-                {name}
+                Summary of the video
             </Typography>
             <Button
+                disableRipple
                 onClick={Expand}
                 sx={{
                   cursor: 'pointer',
-                  alignSelf: 'flex-end',
+                  marginRight: '10px',
+                  minWidth: '24px',
                   '&:hover': {
                     background: 'none'
                   }
@@ -75,7 +66,7 @@ const Word = ({ name, key, expandWord }) => {
                 >
                     <Icon
                     sx={{
-                      marginRight: '5px'
+                      display: 'contents'
                     }}>
                         <img src={ChevronUp}/>
                     </Icon>
@@ -85,4 +76,4 @@ const Word = ({ name, key, expandWord }) => {
   )
 }
 
-export default Word
+export default SummaryForm

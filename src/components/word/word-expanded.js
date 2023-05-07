@@ -14,13 +14,14 @@ const WordExpanded = ({ name, definition, key, collapseWord }) => {
       marginLeft: '20px',
       marginRight: '10px',
       marginTop: '5px',
-      height: '48px',
+      height: '40px',
       width: '-webkit-fill-available'
     }}>
         <Box
         sx={{
           boxSizing: 'border-box',
           borderRadius: '8px',
+          height: '40px',
           border: '4px solid rgba(112, 0, 255, 0.08)',
           display: 'flex',
           justifyContent: 'space-between',
@@ -35,6 +36,7 @@ const WordExpanded = ({ name, definition, key, collapseWord }) => {
                   cursor: 'pointer',
                   marginLeft: '10px',
                   minWidth: 'auto',
+                  alignSelf: 'flex-start',
                   '&:hover': {
                     background: 'none'
                   }
@@ -52,7 +54,7 @@ const WordExpanded = ({ name, definition, key, collapseWord }) => {
               fontWeight: '400',
               marginRight: 'auto',
               alignSelf: 'center',
-              fontSize: '18px',
+              fontSize: '13px',
               maxWidth: '225px',
               overflow: 'hidden',
               textOverflow: 'ellipsis'
@@ -63,6 +65,7 @@ const WordExpanded = ({ name, definition, key, collapseWord }) => {
                 onClick={Collapse}
                 sx={{
                   cursor: 'pointer',
+                  alignSelf: 'flex-end',
                   '&:hover': {
                     background: 'none'
                   }

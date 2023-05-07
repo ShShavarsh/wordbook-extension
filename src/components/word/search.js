@@ -13,6 +13,7 @@ const Search = ({ setPattern, section }) => {
       marginLeft: '20px',
       marginRight: '20px',
       height: '32px',
+      marginTop: '5px',
       '& .MuiOutlinedInput-root': {
         height: '32px'
       }

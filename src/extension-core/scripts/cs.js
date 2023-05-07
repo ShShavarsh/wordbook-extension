@@ -69,6 +69,20 @@ const ContentScript = () => {
       let lastDefinition
 
       if (validWord !== '') {
+        const currentHistory = await chrome.storage.session.get(['words'])
+        const currentHistoryArray = Object.keys(currentHistory).length > 0 ? currentHistory.words : []
+        if (currentHistoryArray.length === 0) {
+          const words = []
+          words.push(validWord)
+          await chrome.storage.session.set({ words: JSON.stringify(words) })
+        } else {
+          const words = JSON.parse(currentHistoryArray)
+          if (!words.includes(validWord)) {
+            words.push(validWord)
+            await chrome.storage.session.set({ words: JSON.stringify(words) })
+          }
+        }
+
         const response = await GetDefinition(validWord)
 
         lastDefinition = response

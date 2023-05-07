@@ -20,13 +20,14 @@ const WordbookPro = () => {
       </Icon>
       <Typography
       sx={{
-        fontFamily: 'Poppins',
-        fontSize: '22px',
+        fontSize: '20px',
         textDecoration: 'none',
         boxShadow: 'none',
         color: 'black',
         cursor: 'pointer',
-        width: '90px'
+        width: '120px',
+        marginBottom: '3px',
+        marginLeft: '5px'
       }}>
         wordbook.pro
       </Typography>
