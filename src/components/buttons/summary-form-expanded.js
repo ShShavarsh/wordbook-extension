@@ -1,10 +1,10 @@
-import { Box, Button, Icon, Tooltip, Typography } from '@mui/material'
+import { Box, Button, Icon, Skeleton, Tooltip, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import SummaryIcon from '../../assets/summary.svg'
 import ChevronDown from '../../assets/chevron-down.svg'
 import CopyIcon from '../../assets/copy.svg'
 
-const SummaryFormExpanded = ({ collapse, summary }) => {
+const SummaryFormExpanded = ({ collapse, summary, loading }) => {
   const [showTooltip, setShowTooltip] = useState(false)
 
   const Expand = () => {
@@ -116,18 +116,52 @@ const SummaryFormExpanded = ({ collapse, summary }) => {
           padding: '7px',
           marginLeft: '14px'
         }}>
-            <Typography
+            {
+                loading
+                  ? <>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  <Skeleton variant='text' animation='pulse' height='13px'/>
+                  </>
+                  : <Typography
             sx={{
               fontWeight: '400',
               marginRight: '5px',
-              alignSelf: 'center',
               fontSize: '13px',
               lineHeight: '24px',
               color: 'rgba(14, 0, 33, 0.68)',
-              mixBlendMode: 'normal'
+              overflowY: 'scroll',
+              mixBlendMode: 'normal',
+              paddingRight: '5px',
+              maxHeight: '200px',
+              '&::-webkit-scrollbar': {
+                width: '7px !important',
+                height: '5px',
+                background: 'rgba(112, 0, 255, 0.04)',
+                border: '1px solid rgba(112, 0, 255, 0.12)',
+                borderRadius: '32px'
+              },
+              '&::-webkit-scrollbar-thumb': {
+                borderRadius: '32px',
+                backgroundColor: 'rgba(112, 0, 255, 0.12)',
+                cursor: 'pointer'
+              }
             }}>
                 {summary}
             </Typography>
+            }
         </Box>
     </Box>
   )

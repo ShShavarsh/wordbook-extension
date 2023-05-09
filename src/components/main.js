@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Container } from '@mui/material'
 import HistorySvg from '../assets/history.svg'
 import WordsContainerButton from './buttons/word-container-button'
@@ -9,9 +9,14 @@ import { useAuthentication } from '../context/auth/use-auth'
 import Words from './word/words'
 import SummaryForm from './buttons/summary-form'
 import SummaryFormExpanded from './buttons/summary-form-expanded'
+import { GetVideoSummary } from '../api/get-summary'
 
 const Main = () => {
   const { isAuthenticated } = useAuthentication()
+
+  const [enableExtension, setEnableExtension] = useState(false)
+  const [currentVideoId, setCurrentVideoId] = useState('')
+
   const [showHistory, setShowHistory] = useState(false)
   const [showDictionary, setShowDictionary] = useState(false)
 
@@ -19,8 +24,48 @@ const Main = () => {
 
   const [showSummary, setShowSummary] = useState(false)
   const [summary, setSummary] = useState('')
+  const [loadingSummary, setLoadingSummary] = useState(false)
 
   const [searchPattern, setSearchPattern] = useState('')
+
+  const GetCurrentTab = async () => {
+    const queryOptions = { active: true, lastFocusedWindow: true }
+    const [tab] = await chrome.tabs.query(queryOptions)
+    return tab
+  }
+
+  useEffect(() => {
+    const getCurrentTab = async () => {
+      const tab = await GetCurrentTab()
+
+      if (tab.status === 'complete' && tab.url && tab.url.includes('youtube.com/watch')) {
+        setEnableExtension(true)
+        const queryParameters = tab.url.split('?')[1]
+        const urlParameters = new URLSearchParams(queryParameters)
+
+        const videoId = urlParameters.get('v')
+        setSummary('')
+        setCurrentVideoId(videoId)
+      } else {
+        setEnableExtension(false)
+      }
+    }
+
+    getCurrentTab().catch(console.error)
+  }, [])
+
+  // useEffect(() => {
+  //   const getVideoSummary = async () => {
+  //     if (currentVideoId) {
+  //       const summary = await GetVideoSummary(currentVideoId)
+  //       await chrome.storage.session.set({ summary })
+  //     }
+  //   }
+
+  //   if (currentVideoId) {
+  //     getVideoSummary().catch(console.error)
+  //   }
+  // }, [currentVideoId])
 
   const openHistory = async () => {
     setShowHistory(prev => !prev)
@@ -29,6 +74,7 @@ const Main = () => {
 
     const history = await chrome.storage.session.get(['words'])
     const historyArray = Object.keys(history).length > 0 ? history : []
+    console.log('historyArray', historyArray)
     if (historyArray.length === 0) {
       setWords([])
     } else {
@@ -51,6 +97,13 @@ const Main = () => {
     setShowSummary(true)
     setShowHistory(false)
     setShowDictionary(false)
+
+    if (!summary) {
+      setLoadingSummary(true)
+      const summary = await GetVideoSummary(currentVideoId)
+      setSummary(summary)
+      setLoadingSummary(false)
+    }
   }
 
   const HideSummary = () => {
@@ -59,56 +112,58 @@ const Main = () => {
     setShowDictionary(false)
   }
 
-  const dummySummary = "Well hello and welcome to this English lesson about nice once again welcome to this English lesson about nice gifts? No I'm not. What kind of nice things will I talk about? person in this English lesson. Well hello and welcome to this English lesson about nice once again welcome to this English lesson about nice gifts? No I'm not. What kind of nice things will I talk about? person in this English lesson. Well hello and welcome to this English lesson about nice once again welcome to this English lesson about nice gifts? No I'm not. What kind of nice things will I talk about?"
-
   return (
-    <Container
-    sx={{
-      border: '3px',
-      borderRadius: '5px',
-      borderColor: '#F5EDFF',
-      borderStyle: 'solid',
-      padding: 0
-    }}>
-      <Box
+    <>
+    { enableExtension
+      ? <Container
       sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        width: 'inherit',
-        paddingLeft: '15px',
-        marginTop: '10px'
+        border: '3px',
+        borderRadius: '5px',
+        borderColor: '#F5EDFF',
+        borderStyle: 'solid',
+        padding: 0
       }}>
-        <WordbookPro />
-        <SignInButton />
-      </Box>
-      <Box sx={{
-        display: 'block',
-        background: 'rgba(112, 0, 255, 0.02)',
-        width: 'inherit',
-        marginTop: '12px',
-        marginBottom: '12px'
-      }}>
-      { showSummary ? <SummaryFormExpanded collapse={HideSummary} summary={dummySummary} /> : <SummaryForm show={ShowSummary} /> }
-      {isAuthenticated && <WordsContainerButton
-        name='Dictionary'
-        expanded={showDictionary}
-        expand={openDictionary}
-        iconSvg={HistorySvg}
+        <Box
         sx={{
-          width: '172px'
-        }}/>}
-      <WordsContainerButton
-        name='History'
-        expanded={showHistory}
-        expand={openHistory}
-        iconSvg={HistorySvg}
-        sx={{
-          width: '148px'
-        }}/>
-      {(showHistory || showDictionary) && <Search setPattern={SetSearchPattern} section={showHistory ? 'history' : 'dictionary'} />}
-      {(showHistory || showDictionary) && <Words words={words} searchPattern={searchPattern}/>}
-      </Box>
-    </Container>
+          display: 'inline-flex',
+          alignItems: 'center',
+          width: 'inherit',
+          paddingLeft: '15px',
+          marginTop: '10px'
+        }}>
+          <WordbookPro />
+          <SignInButton />
+        </Box>
+        <Box sx={{
+          display: 'block',
+          background: 'rgba(112, 0, 255, 0.02)',
+          width: 'inherit',
+          marginTop: '12px',
+          marginBottom: '12px'
+        }}>
+        { showSummary ? <SummaryFormExpanded collapse={HideSummary} summary={summary} loading={loadingSummary} /> : <SummaryForm show={ShowSummary} /> }
+        {isAuthenticated && <WordsContainerButton
+          name='Dictionary'
+          expanded={showDictionary}
+          expand={openDictionary}
+          iconSvg={HistorySvg}
+          sx={{
+            width: '172px'
+          }}/>}
+        <WordsContainerButton
+          name='History'
+          expanded={showHistory}
+          expand={openHistory}
+          iconSvg={HistorySvg}
+          sx={{
+            width: '148px'
+          }}/>
+        {(showHistory || showDictionary) && <Search setPattern={SetSearchPattern} section={showHistory ? 'history' : 'dictionary'} />}
+        {(showHistory || showDictionary) && <Words words={words} searchPattern={searchPattern}/>}
+        </Box>
+      </Container>
+      : <p>aaaaaaaaaa</p>}
+    </>
   )
 }
 
