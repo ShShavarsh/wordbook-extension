@@ -33,8 +33,10 @@ const ContentScript = () => {
       captionText = captionTexts[0]
     }
 
-    for (let j = captionText.children.length - 1; j >= 0; j--) {
-      captionText.removeChild(captionText.children[j])
+    if (captionText.children) {
+      for (let j = captionText.children.length - 1; j >= 0; j--) {
+        captionText.removeChild(captionText.children[j])
+      }
     }
 
     const words = captionSegment.split(' ')
