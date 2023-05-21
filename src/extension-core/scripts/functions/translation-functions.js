@@ -1,6 +1,7 @@
 import { GetTranslation } from './api-call-functions'
 import { CreateWordDefinition } from './word-functions'
-import '../../styles/loading-spinner.css'
+import { CreateSkeleton } from './css-setup'
+import '../../styles/skeleton.css'
 
 export const CreateTranslationContainer = (word, lastDefinition) => {
   const popupWindow = document.getElementById('wordbook-definition-popup')
@@ -70,15 +71,18 @@ export const CreateTranslationContainer = (word, lastDefinition) => {
         translationContainer.remove()
       }
 
-      const spinner = document.createElement('div')
-      spinner.id = 'loading'
-      spinner.className = 'loading'
-      spinner.style = 'z-index: 999; height: 2em; width: 2em; margin: auto; margin-top: 20%;'
-      popupWindow.insertBefore(spinner, addToDictionaryContainer)
+      const translationSuccessContainer = document.createElement('p')
+      translationSuccessContainer.id = 'wordbook-translation-container'
+      translationSuccessContainer.style = 'background: rgb(250, 245, 255); border-radius: 4px; padding: 8px 12px; display: grid; margin-bottom: 10px;'
+
+      popupWindow.insertBefore(translationSuccessContainer, popupWindow.childNodes[1])
+
+      const skeleton = CreateSkeleton()
+      translationSuccessContainer.appendChild(skeleton)
 
       const translation = await GetTranslation(word, 'en', targetLanguages.find(l => l.country === language.innerText).lang)
 
-      spinner.remove()
+      translationSuccessContainer.remove()
 
       console.log(lastDefinition)
 

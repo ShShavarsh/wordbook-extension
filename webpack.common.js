@@ -54,7 +54,7 @@ module.exports = {
           to: path.resolve('dist')
         },
         {
-          from: path.resolve('src/extension-core/styles/loading-spinner.css'),
+          from: path.resolve('src/extension-core/styles/skeleton.css'),
           to: path.resolve('dist')
         },
         {

@@ -73,12 +73,12 @@ const Main = () => {
     setShowSummary(false)
 
     const history = await chrome.storage.session.get(['words'])
-    const historyArray = Object.keys(history).length > 0 ? history : []
+    const historyArray = Object.keys(history).length > 0 ? history.words : []
     console.log('historyArray', historyArray)
     if (historyArray.length === 0) {
       setWords([])
     } else {
-      const historyWords = JSON.parse(historyArray.words)
+      const historyWords = JSON.parse(historyArray)
       setWords(historyWords)
     }
   }
@@ -98,11 +98,16 @@ const Main = () => {
     setShowHistory(false)
     setShowDictionary(false)
 
-    if (!summary) {
+    const response = await chrome.storage.session.get({ summary })
+
+    if (!response.summary) {
       setLoadingSummary(true)
       const summary = await GetVideoSummary(currentVideoId)
+      await chrome.storage.session.set({ summary })
       setSummary(summary)
       setLoadingSummary(false)
+    } else {
+      setSummary(response.summary)
     }
   }
 

@@ -3,6 +3,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const queryParameters = tab.url.split('?')[1]
     const urlParameters = new URLSearchParams(queryParameters)
 
+    chrome.storage.session.set({ summary: '' })
     chrome.storage.session.set({ words: [] })
 
     chrome.tabs.sendMessage(tabId, {
