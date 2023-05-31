@@ -33,7 +33,7 @@ const ContentScript = () => {
       captionText = captionTexts[0]
     }
 
-    if (captionText.children) {
+    if (captionText && captionText.children) {
       for (let j = captionText.children.length - 1; j >= 0; j--) {
         captionText.removeChild(captionText.children[j])
       }

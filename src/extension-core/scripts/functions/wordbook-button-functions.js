@@ -1,26 +1,23 @@
 import { GetTranscriptAsPlainText } from './api-call-functions'
 
 export const InitializeWordbook = (status) => {
-  if (document.getElementById('wordbook-button') === null) {
+  const wordbookButton = document.getElementById('wordbook-button')
+
+  if (wordbookButton === null) {
     const elementPanel = document.getElementsByClassName('ytp-right-controls')[0]
     const wordbookButton = CreateWordbookButton(status)
     elementPanel.insertBefore(wordbookButton, elementPanel.children[2])
   } else {
-    const elementPanel = document.getElementsByClassName('ytp-right-controls')[0]
-    elementPanel.removeChild(elementPanel.children[2])
-    const wordbookButton = CreateWordbookButton(status)
-    elementPanel.insertBefore(wordbookButton, elementPanel.children[2])
+    wordbookButton.ariaPressed = false
+    wordbookButton.style.opacity = 0.5
   }
 }
 
 export const InitializeDownloadTranscriptButton = (status, videoId) => {
-  if (document.getElementById('wordbook-download-transcript') === null) {
+  const wordbookTranscriptButton = document.getElementById('wordbook-download-transcript')
+
+  if (wordbookTranscriptButton === null) {
     const elementPanel = document.getElementsByClassName('ytp-right-controls')[0]
-    const wordbookDownloadTranscriptButton = CreateDownloadTranscriptButton(status, videoId)
-    elementPanel.insertBefore(wordbookDownloadTranscriptButton, elementPanel.children[3])
-  } else {
-    const elementPanel = document.getElementsByClassName('ytp-right-controls')[0]
-    elementPanel.removeChild(elementPanel.children[3])
     const wordbookDownloadTranscriptButton = CreateDownloadTranscriptButton(status, videoId)
     elementPanel.insertBefore(wordbookDownloadTranscriptButton, elementPanel.children[3])
   }

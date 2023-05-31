@@ -1,7 +1,10 @@
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (tab.status === 'complete' && tab.url && tab.url.includes('youtube.com/watch')) {
+  if (tab.status === 'complete' && tab.url && tab.url.includes('youtube.com/watch') && changeInfo && changeInfo.status === 'complete') {
     const queryParameters = tab.url.split('?')[1]
     const urlParameters = new URLSearchParams(queryParameters)
+
+    console.log('changeInfo', changeInfo)
+    console.log('tab', tab)
 
     chrome.storage.session.set({ summary: '' })
     chrome.storage.session.set({ words: [] })
